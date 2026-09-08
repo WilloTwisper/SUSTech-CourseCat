@@ -1,0 +1,45 @@
+# 复制为 config.toml 后按需修改。所有字段均有代码内默认值，可不建此文件。
+
+[tis]
+base_url = "https://tis.sustech.edu.cn"
+tls_verify = true
+timeout_s = 10.0
+
+[engine]
+# 抢课请求间隔；非本机目标会被强制 ≥1500ms（2024-09 观测的服务端用户级限频）
+interval_ms = 1600
+# 课程目录下载（queryKxrw）的间隔；该接口有独立限频，jg=-1 时会指数退避重试
+discovery_interval_ms = 5000
+# 冲突时自动跳过该课程（false = 交互确认）
+auto_skip_conflict = true
+# “人数已满”时是否持续重试等待退课（false = 跳过，与上游脚本一致）
+retry_full = false
+# 最大请求次数，0 = 不限
+max_requests = 0
+# rwtjzyx = 直接提交至已选；rwtjzgwc = 提交至购物车
+submit_target = "rwtjzyx"
+
+[network]
+# 定时开抢时用 SNTP 校准时钟（需 UDP/123 出站）
+use_ntp = false
+ntp_server = "ntp.aliyun.com"
+
+[notify]
+# 选课成功时 POST {"content": "..."}（Discord/企业微信/Bark 等兼容）
+webhook_url = ""
+toast = true
+
+# 接口路径。若学校调整 TIS（如 2026 秋），先用浏览器 F12 抓包核对，再改这里。
+[endpoints]
+semester = "/Xsxk/queryXkdqXnxq"
+courses = "/Xsxk/queryKxrw"
+enroll = "/Xsxk/addGouwuche"
+referer = "/Xsxk/query/1"
+
+# 响应分类关键字，按序匹配；jg=="1" 恒定判定成功。
+[keywords]
+NOT_OPEN = ["未开始", "不在选课", "未开放", "不在时间"]
+RATE_LIMITED = ["频繁", "稍后", "过快", "休息一下", "频率过高", "请稍后重试"]
+CONFLICT = ["冲突", "时间冲突", "上课时间冲突"]
+FULL = ["已满", "人数已满", "容量已满", "名额已满"]
+ALREADY_ENROLLED = ["已选", "重复选课"]

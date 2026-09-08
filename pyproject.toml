@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sustech-coursecat"
+version = "1.0.0"
+description = "抢课猫 CourseCat：南科大 TIS 串行限速抢课助手（CLI/TUI/Web）"
+requires-python = ">=3.10"
+dependencies = [
+    "httpx[http2]>=0.27",
+    "websocket-client>=1.6",
+    "rich>=13.0",
+    "prompt_toolkit>=3.0",
+    "textual>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+enroll-helper = "enroll_helper.cli:main"
+enroll-tui = "enroll_helper.tui_app:main"
+enroll-web = "enroll_helper.webserver:main"
+coursecat = "enroll_helper.cli:main"
+coursecat-tui = "enroll_helper.tui_app:main"
+coursecat-web = "enroll_helper.webserver:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+enroll_helper = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

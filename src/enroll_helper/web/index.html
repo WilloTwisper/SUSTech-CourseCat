@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抢课猫 CourseCat · 南科大 TIS 助手</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%238f000b'/%3E%3Cpath d='M9 13 L7 5 L14 9 Z' fill='white'/%3E%3Cpath d='M23 13 L25 5 L18 9 Z' fill='white'/%3E%3Cellipse cx='16' cy='18' rx='8.5' ry='7.5' fill='white'/%3E%3Ccircle cx='12.8' cy='17' r='1.7' fill='%238f000b'/%3E%3Ccircle cx='19.2' cy='17' r='1.7' fill='%238f000b'/%3E%3Cpath d='M13.8 21.2 Q16 23.2 18.2 21.2' stroke='%238f000b' stroke-width='1.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --red:#8f000b; --blue:#2d8cf0; --btn-blue:#2db7f5; --btn-blue-hi:#57c5f7;
+  --green:#19BE6B; --orange:#E67700;
+  --ink:#303030; --title:#17233D; --line:#DCDEE2; --rowline:#EBEEF5;
+  --bg:#f5f7f9; --card:#FFFFFF; --th:#ededed;
+  --info-bg:#E6F7FF; --info-bd:#91D5FF;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.6 "微软雅黑","Microsoft YaHei","PingFang SC","Segoe UI",sans-serif}
+.topbar{background:var(--red);color:#fff;display:flex;justify-content:space-between;
+  align-items:center;padding:10px 22px}
+.brand{font-size:18px;display:flex;align-items:center;gap:10px}
+.brand .logo{border:2px solid #fff;border-radius:50%;width:30px;height:30px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+.brand small{font-size:13px;opacity:.92;font-weight:normal}
+.catlogo{width:32px;height:32px;flex:none}
+.user{font-size:13px;display:flex;gap:14px;align-items:center}
+.user .ghost{background:transparent;border:1px solid rgba(255,255,255,.55);color:#fff;
+  border-radius:4px;height:28px;padding:0 10px;font-size:12px;cursor:pointer}
+.badge{background:rgba(255,255,255,.18);border-radius:10px;padding:1px 10px;font-size:12px}
+.wrap{max-width:1280px;margin:0 auto;padding:14px 16px 30px}
+.notice{background:#f0faff;border:1px solid #abdcff;color:var(--title);
+  border-radius:4px;padding:8px 14px;margin-bottom:12px;font-size:13px}
+.notice .dot{color:var(--blue);font-weight:700;margin-right:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;
+  margin-bottom:14px;overflow:hidden}
+.card h3{margin:0;padding:10px 16px;font-size:15px;color:var(--title);
+  border-bottom:1px solid var(--line)}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:12px 16px}
+.controls label{white-space:nowrap}
+.controls input[type=text],.controls input[type=number]{border:1px solid var(--line);
+  border-radius:4px;padding:5px 9px;font-size:13px;color:var(--ink)}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;
+  height:32px;padding:0 15px;font-size:12px;cursor:pointer;white-space:nowrap}
+.btn:hover{filter:brightness(.96)}
+.btn-blue{background:var(--btn-blue);border-color:var(--btn-blue);color:#fff}
+.btn-blue:hover{background:var(--btn-blue-hi);border-color:var(--btn-blue-hi)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-red{background:#ED4014;border-color:#ED4014;color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.filterbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:12px 16px}
+.filterbar select,.filterbar input[type=text]{border:1px solid var(--line);border-radius:4px;
+  height:32px;padding:0 9px;font-size:13px;color:var(--ink);min-width:150px;background:#fff}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+.switch input{display:none}
+.sw{width:44px;height:22px;border-radius:22px;border:1px solid #ccc;background:#ccc;
+  position:relative;transition:all .2s;display:inline-block;flex:none}
+.sw::after{content:"";position:absolute;top:1px;left:1px;width:18px;height:18px;
+  border-radius:50%;background:#fff;transition:all .2s}
+.switch input:checked + .sw{background:var(--blue);border-color:var(--blue)}
+.switch input:checked + .sw::after{left:23px}
+.tabs{display:flex;gap:0;padding:0 16px;border-bottom:1px solid var(--line);
+  background:#fff;overflow-x:auto}
+.tab{border:none;background:none;padding:8px 16px;margin-right:16px;font-size:14px;color:var(--ink);
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.table-wrap{overflow-x:auto}
+table.grid{border-collapse:collapse;width:100%;font-size:13px;min-width:1180px}
+table.grid th{background:var(--th);color:var(--title);font-weight:600;height:35px;
+  border:1px solid #dcdcdc;border-bottom:1px solid #cacdce;padding:8px 10px;text-align:left;white-space:nowrap}
+table.grid td{border:1px solid #dcdcdc;padding:8px 10px;vertical-align:top;background:#fff}
+table.grid tr:nth-child(even) td{background:#FAFAFA}
+.cname{color:var(--blue)}
+.cname small{display:block;color:#808695;font-size:12px}
+.tname{color:var(--blue)}
+.skxx{color:var(--title);font-weight:700}
+.tag{display:inline-block;background:#f6ffed;border:1px solid #b7eb8f;color:var(--ink);
+  line-height:20px;border-radius:3px;padding:0 6px;margin:1px 2px 1px 0;font-size:12px;white-space:nowrap}
+.seats b{color:var(--title)}
+.st-SUCCESS{color:var(--green);font-weight:700}
+.st-FULL{color:var(--orange);font-weight:700}
+.st-NOT_OPEN{color:var(--blue)}
+.st-CONFLICT,.st-SESSION_EXPIRED{color:#ED4014;font-weight:700}
+.st-RATE_LIMITED{color:#722ED1}
+.st-FAILED,.st-ERROR{color:#808695}
+.pager{padding:10px 16px;color:#808695;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pager button{min-width:32px;height:32px;line-height:30px;border:1px solid var(--line);
+  background:#fff;border-radius:4px;cursor:pointer;color:var(--ink);padding:0 8px}
+.pager button.cur{border-color:var(--blue);color:var(--blue);font-weight:700}
+.pager select,.pager input{border:1px solid var(--line);border-radius:4px;height:32px;
+  padding:0 6px;font-size:13px;color:var(--ink)}
+.pager input{width:52px}
+#log{height:180px;overflow-y:auto;background:#fff;color:#333;font-size:12.5px;
+  font-family:Consolas,monospace;padding:8px 12px;border-top:1px solid var(--line)}
+#log .ok{color:#0E7C86}#log .warn{color:#B7791F}#log .err{color:#D92D20}
+#log .good{color:#19BE6B;font-weight:700}
+.conflict{color:#ED4014}
+#ribbon{position:absolute;top:0;right:0;background:var(--btn-blue);color:#fff;
+  font-size:12px;font-weight:400;padding:2px 10px;border-radius:0 4px 0 8px;cursor:pointer;user-select:none}
+#console{position:relative}
+.has-ribbon{position:relative}
+footer{background:var(--red);color:#fff;padding:10px 22px;font-size:13px;
+  display:flex;justify-content:space-between}
+footer .l span{margin-right:26px}
+footer .r{display:flex;gap:18px;align-items:center}
+footer a{color:#fff;cursor:pointer;text-decoration:none}
+footer a:hover{text-decoration:underline}
+#modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;
+  align-items:center;justify-content:center;z-index:99}
+#modal-mask[hidden]{display:none}
+#modal{background:#fff;color:var(--ink);border-radius:6px;max-width:520px;
+  padding:20px 24px;font-size:13px}
+#modal h3{margin:0 0 10px;color:var(--title)}
+#modal p{margin:6px 0}
+body.dark{--bg:#141414;--card:#1F1F1F;--ink:#E5E5E5;--title:#FFFFFF;
+  --line:#434343;--rowline:#2A2A2A;--th:#262626}
+body.dark .filterbar select,body.dark .filterbar input[type=text],
+body.dark .controls input[type=text],body.dark .controls input[type=number],
+body.dark .pager select,body.dark .pager input{background:#2A2A2A;color:#E5E5E5;border-color:#434343}
+body.dark table.grid td{background:#1F1F1F}
+body.dark table.grid tr:nth-child(even) td{background:#242424}
+body.dark .cname,body.dark .tname,body.dark .tab.active{color:#69B7FF}
+body.dark .pager button{background:#2A2A2A;color:#E5E5E5;border-color:#434343}
+body.dark #modal{background:#2A2A2A;color:#E5E5E5}
+body.dark #modal h3{color:#fff}
+.qrow td{background:#F0F7FF !important}
+.mini{font-size:12px;color:#808695}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><svg class="catlogo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#fff"/><path d="M9 13 L7 5 L14 9 Z" fill="#8f000b"/><path d="M23 13 L25 5 L18 9 Z" fill="#8f000b"/><ellipse cx="16" cy="18" rx="8.5" ry="7.5" fill="#8f000b"/><circle cx="12.8" cy="17" r="1.7" fill="#fff"/><circle cx="19.2" cy="17" r="1.7" fill="#fff"/><path d="M13.8 21.2 Q16 23.2 18.2 21.2" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg><span>抢课猫 <small>CourseCat · 南科大 TIS 助手</small></span></div>
+  <div class="user"><span>您好 <span class="badge" id="session-badge">会话 …</span></span><span id="semester-label">…</span><button class="ghost" id="theme" title="黑夜模式">🌙</button><button class="ghost" id="fs">全屏</button></div>
+</header>
+
+<div class="wrap">
+  <div class="notice" id="phase-banner"><span class="dot">ⓘ</span><span id="phase-text">本地抢课控制台：仅在你点“开始抢课”后才会向教务系统提交真实请求。</span></div>
+
+  <section class="card" id="console">
+    <h3>抢课控制台 <span class="mini">（按优先级从上到下）</span>
+      <span id="ribbon" title="收起/展开">收起 ▴</span></h3>
+    <div id="console-body">
+    <div class="controls">
+      <label>模式
+        <label><input type="radio" name="mode" value="now" checked> 立即</label>
+        <label><input type="radio" name="mode" value="at"> 定时</label>
+        <label><input type="radio" name="mode" value="retry"> 蹲退课</label>
+      </label>
+      <label>开抢时间 <input type="text" id="at" placeholder="10:00 或 2026-09-08 10:00:00" size="22"></label>
+      <label>间隔ms <input type="number" id="interval" value="1600" min="1500" step="100" style="width:90px"></label>
+      <label>提交 <label><input type="radio" name="target" value="rwtjzyx" checked> 直选</label>
+        <label><input type="radio" name="target" value="rwtjzgwc"> 购物车</label></label>
+      <label class="switch"><input type="checkbox" id="cascade" checked> 满员轮询<span class="sw"></span></label>
+      <label class="switch"><input type="checkbox" id="ntp" checked> NTP校时<span class="sw"></span></label>
+      <button class="btn btn-green" id="start">开始抢课</button>
+      <button class="btn btn-red" id="stop">停止</button>
+      <button class="btn" id="refresh">刷新目录</button>
+      <button class="btn" id="login">重新登录</button>
+    </div>
+    <div class="table-wrap"><table class="grid" id="queue-table">
+      <thead><tr><th>#</th><th>待选课程</th><th>类别</th><th>余量</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody id="queue-body"><tr><td colspan="6" style="color:#808695">队列为空：在下方课程表点“选课”加入</td></tr></tbody>
+    </table></div>
+    <div id="log"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="filterbar">
+      <label>学年学期 <span id="xnxq" style="color:var(--title)">…</span></label>
+      <label>开课学院 <select id="school"><option value="">请选择</option></select></label>
+      <label>课程类别 <select id="cat2"><option value="">课程类别</option></select></label>
+      <label>课程 <input type="text" id="q" placeholder="课程"></label>
+      <label class="switch">忽略冲突 <input type="checkbox" id="ignoreConflict" checked><span class="sw"></span></label>
+      <label class="switch">忽略零余量 <input type="checkbox" id="hidefull"><span class="sw"></span></label>
+      <button class="btn btn-blue" id="search">查询</button>
+      <span class="mini" id="count"></span>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="table-wrap"><table class="grid" id="course-table">
+      <thead><tr>
+        <th>教学班</th><th>课程代码</th><th>课程名称</th><th>课程性质</th><th>课程类别</th>
+        <th>授课语言</th><th>计分方式</th><th>学分</th><th>学时</th><th>上课信息</th>
+        <th>容量/已选</th><th>冲突课程</th><th>开课学院</th><th>操作</th>
+      </tr></thead>
+      <tbody id="course-body"><tr><td colspan="13" style="color:#808695">先点“刷新目录”（首次约半分钟）</td></tr></tbody>
+    </table></div>
+    <div class="pager" id="pager"></div>
+  </section>
+</div>
+
+<footer><div class="l"><span>主页</span><span>我要选课</span></div><div class="r"><a id="star">⭐ Star</a><a id="share">推荐给同学</a><a id="disclaimer">免责声明</a><span>关闭标签</span></div></footer>
+<div id="modal-mask" hidden><div id="modal">
+  <h3>免责声明</h3>
+  <p>抢课猫 CourseCat 仅供个人学习与研究使用。使用本工具产生的任何行为由使用者本人承担，请确保符合学校规章制度与相关法规。</p>
+  <p>本工具不规避任何安全机制、不做流量伪装、不承诺任何效果；作者不对封号、处分等任何直接或间接后果负责。</p>
+  <p>如果你觉得好用，欢迎 Star 本项目并推荐给同学（页脚可一键分享）。</p>
+  <p><button class="btn btn-blue" id="modal-ok">我知道了</button></p>
+</div></div>
+<script src="/app.js"></script>
+</body>
+</html>
