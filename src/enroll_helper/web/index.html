@@ -14,10 +14,10 @@
   --info-bg:#E6F7FF; --info-bd:#91D5FF;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);
+body{margin:0;background:var(--bg);color:var(--ink);padding:60px 0 44px;
   font:14px/1.6 "微软雅黑","Microsoft YaHei","PingFang SC","Segoe UI",sans-serif}
 .topbar{background:var(--red);color:#fff;display:flex;justify-content:space-between;
-  align-items:center;padding:10px 22px}
+  align-items:center;padding:10px 22px;position:fixed;top:0;left:0;right:0;z-index:50}
 .brand{font-size:18px;display:flex;align-items:center;gap:10px}
 .brand .logo{border:2px solid #fff;border-radius:50%;width:30px;height:30px;
   display:inline-flex;align-items:center;justify-content:center;font-size:15px}
@@ -64,7 +64,21 @@ body{margin:0;background:var(--bg);color:var(--ink);
   cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .table-wrap{overflow-x:auto}
-table.grid{border-collapse:collapse;width:100%;font-size:13px}
+table.grid{border-collapse:collapse;width:100%;font-size:13px;table-layout:fixed}
+#course-table th:nth-child(1),#course-table td:nth-child(1){width:9%}
+#course-table th:nth-child(2),#course-table td:nth-child(2){width:6%}
+#course-table th:nth-child(3),#course-table td:nth-child(3){width:11%}
+#course-table th:nth-child(4),#course-table td:nth-child(4){width:4%}
+#course-table th:nth-child(5),#course-table td:nth-child(5){width:7%}
+#course-table th:nth-child(6),#course-table td:nth-child(6){width:4%}
+#course-table th:nth-child(7),#course-table td:nth-child(7){width:5%}
+#course-table th:nth-child(8),#course-table td:nth-child(8){width:4%}
+#course-table th:nth-child(9),#course-table td:nth-child(9){width:4%}
+#course-table th:nth-child(10),#course-table td:nth-child(10){width:20%}
+#course-table th:nth-child(11),#course-table td:nth-child(11){width:8%}
+#course-table th:nth-child(12),#course-table td:nth-child(12){width:6%}
+#course-table th:nth-child(13),#course-table td:nth-child(13){width:7%}
+#course-table th:nth-child(14),#course-table td:nth-child(14){width:5%}
 table.grid th{background:var(--th);color:var(--title);font-weight:600;height:35px;
   border:1px solid #dcdcdc;border-bottom:1px solid #cacdce;padding:8px 10px;text-align:left;white-space:nowrap}
 table.grid td{border:1px solid #dcdcdc;padding:8px 10px;vertical-align:top;background:#fff;word-break:break-word}

@@ -172,7 +172,7 @@ async function refreshCourses() {
     }
     const q = $("q").value.trim();
     const hide = $("hidefull").checked ? "&hide_full=1" : "";
-    const hidec = $("ignoreConflict").checked ? "" : "&hide_conflict=1";
+    const hidec = $("ignoreConflict").checked ? "&hide_conflict=1" : "";
     const school = encodeURIComponent($("school").value || "");
     const cat = encodeURIComponent($("cat2").value || "");
     const d = await api(`/api/courses?tab=${activeTab}&q=${encodeURIComponent(q)}${hide}${hidec}` +

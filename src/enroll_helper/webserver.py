@@ -290,7 +290,7 @@ class Hub:
                 submit_target=opts.get("target") or "rwtjzyx",
                 use_ntp=bool(opts.get("ntp")),
                 at_time=opts.get("at") if mode == "at" else None)
-            settings.auto_skip_conflict = not opts.get("ignore_conflict", True)
+            settings.auto_skip_conflict = bool(opts.get("ignore_conflict", True))
             self.emit("log", text=f"[+] 连接预热完成 HTTP {tis.warmup()}")
             if settings.at_time:
                 from .cli import parse_at
@@ -416,7 +416,13 @@ def make_handler(hub: Hub):
             except OSError:
                 self._send(404, {"error": "not found"})
                 return
-            self._send(200, data, ctype)
+            self.send_response(200)
+            self.send_header("Content-Type", f"{ctype}; charset=utf-8"
+                             if "charset" not in ctype else ctype)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
 
         def _body(self) -> dict:
             try:
