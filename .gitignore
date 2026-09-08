@@ -10,6 +10,7 @@ courses.txt
 report*.json
 *.har
 *.png
+!docs/*.png
 outerhtml*.html
 query_page.html
 xsxk_*.js

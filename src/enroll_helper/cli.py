@@ -97,9 +97,10 @@ def resolve_cookies(settings: Settings) -> dict[str, str]:
 
 
 def load_catalog(tis: TisClient, semester, settings: Settings,
-                 emit=print, confirm_refresh: bool = True) -> dict[str, Course]:
+                 emit=print, confirm_refresh: bool = True,
+                 use_cache: bool = True) -> dict[str, Course]:
     cache = Path(f"catalog_{semester.p_xnxq}.json")
-    if cache.exists() and not settings.refresh_cache:
+    if use_cache and cache.exists() and not settings.refresh_cache:
         age_h = (time.time() - cache.stat().st_mtime) / 3600
         if (confirm_refresh and age_h > 12 and sys.stdin.isatty()
                 and not settings.non_interactive):
@@ -112,16 +113,18 @@ def load_catalog(tis: TisClient, semester, settings: Settings,
         if not settings.refresh_cache:
             data = json.loads(cache.read_text(encoding="utf-8"))
             if data.get("p_xnxq") == semester.p_xnxq:
-                if any("capacity" not in c for c in data["courses"].values()):
-                    emit("[!] 目录缓存为旧格式（无余量字段），重新下载…")
+                if any("capacity" not in c or "extra" not in c
+                       for c in data["courses"].values()):
+                    emit("[!] 目录缓存为旧格式（无余量/详情字段），重新下载…")
                 else:
                     emit(f"[+] 使用课程目录缓存 {cache}")
                     return {n: Course(**c) for n, c in data["courses"].items()}
     emit("[*] 从服务器下载课程目录（6 类，逐类限速）...")
     catalog = tis.query_courses(semester, Pacer(settings.discovery_interval_ms),
                                 progress=lambda msg: emit(f"    {msg}"))
-    dump_catalog(catalog, semester)
-    emit("[+] 课程目录已缓存")
+    if use_cache:
+        dump_catalog(catalog, semester)
+        emit("[+] 课程目录已缓存")
     return catalog
 
 

@@ -300,7 +300,7 @@ class EnrollApp(App):
         self._load_local_state()
         self.set_interval(0.2, self._drain_events)
         self.set_interval(1.0, self._tick)
-        self.ui_log("欢迎使用 SUSTech 抢课助手 TUI。按 s 开始，a 加课，l 登录，q 退出。")
+        self.ui_log("欢迎使用抢课猫 CourseCat，祝武运昌隆喵！按 s 开始，a 加课，l 登录，q 退出，v 切换夜间。")
         if Path("cookies.txt").exists():
             threading.Thread(target=self._semester_worker, daemon=True).start()
 
@@ -327,12 +327,15 @@ class EnrollApp(App):
 
     def _load_local_state(self) -> None:
         for cache in sorted(Path(".").glob("catalog_*.json")):
+            if "mock" in cache.name.lower():
+                continue
             try:
                 data = json.loads(cache.read_text(encoding="utf-8"))
                 courses = data["courses"]
                 self._catalog = {n: Course(**c) for n, c in courses.items()}
-                if any("capacity" not in c for c in courses.values()):
-                    self.ui_log(f"{cache} 为旧格式（无余量），开始运行时会自动刷新")
+                if any("capacity" not in c or "extra" not in c
+                       for c in courses.values()):
+                    self.ui_log(f"{cache} 为旧格式，开始运行时会自动刷新")
                 else:
                     self.ui_log(f"已载入目录缓存 {cache}（{len(self._catalog)} 门）")
                 break

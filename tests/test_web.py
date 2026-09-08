@@ -63,6 +63,8 @@ def test_status_bootstraps(mock, web):
 
 
 def test_refresh_and_courses(mock, web):
+    import pathlib
+
     base, hub = web
     _post(base, "/api/refresh", {})
     deadline = time.time() + 30
@@ -70,6 +72,7 @@ def test_refresh_and_courses(mock, web):
         if _get(base, "/api/status")["catalog_count"] >= 5:
             break
         time.sleep(0.5)
+    assert list(pathlib.Path(".").glob("catalog_*.json")) == []
     d = _get(base, "/api/courses?tab=kzyxk&q=")
     assert d["total"] == 1
     row = d["courses"][0]
@@ -77,7 +80,7 @@ def test_refresh_and_courses(mock, web):
     assert row["code"] == "CS203"
     assert row["title"] == "数据结构"
     assert row["seats"] == 2
-    assert row["sched_tags"] == []
+    assert row["sched_tags"] == ["1-16周,星期二第3-4节 智华楼502机房"]
 
 
 def test_facets_filters_paging(mock, web):
@@ -94,7 +97,8 @@ def test_facets_filters_paging(mock, web):
     d = _get(base, "/api/courses?tab=all&q=&school=%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB")
     assert d["total"] == 1 and d["courses"][0]["code"] == "CS203"
     d = _get(base, "/api/courses?tab=all&q=&category=%E4%B8%93%E4%B8%9A%E9%80%89%E4%BF%AE%E8%AF%BE")
-    assert d["total"] == 1
+    assert d["total"] == 2
+    assert {r["code"] for r in d["courses"]} == {"CS203", "PHY204"}
     d = _get(base, "/api/courses?tab=all&q=&page=2&size=2")
     assert d["total"] == 5 and len(d["courses"]) == 2 and d["page"] == 2
     d = _get(base, "/api/courses?tab=all&q=&hide_full=1")

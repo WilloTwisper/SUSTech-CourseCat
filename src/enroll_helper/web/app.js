@@ -1,5 +1,5 @@
 const $ = (id) => document.getElementById(id);
-const REPO_URL = "https://github.com/your-name/SUSTech-CourseCat";
+const REPO_URL = "https://github.com/WilloTwisper/SUSTech-CourseCat";
 let lastEvent = 0;
 let queueNames = [];
 let enrolledN = 0;
@@ -67,8 +67,10 @@ function courseRow(r, inQueue) {
     `<td>${esc(r.nature) || "—"}</td><td>${esc(r.category) || "—"}</td>` +
     `<td>${esc(r.lang) || "—"}</td><td>${esc(r.grade) || "—"}</td>` +
     `<td>${esc(r.credit) || "—"}</td><td>${esc(r.hours) || "—"}</td>` +
-    `<td><div class="tname">${esc(r.teacher) || "—"}</div>` +
-    `<div><b>上课信息：</b>${(r.sched_tags || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("") || '<span class="mini">—</span>'}</div></td>` +
+    `<td>${r.teacher ? `<div class="tname">${esc(r.teacher)}</div>` : ""}` +
+    `${(r.sched_tags || []).length
+      ? `<div><b>上课信息：</b>${r.sched_tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>`
+      : (r.teacher ? "" : '<span class="mini">—</span>')}</td>` +
     `<td class="seats">对内容量：<b>${r.cap == null ? "—" : r.cap}</b>，` +
     `已选人数：<b>${r.enrolled == null ? "—" : r.enrolled}</b></td>` +
     `<td>${(r.conflicts || []).length
@@ -236,7 +238,7 @@ async function refreshStatus() {
     const qb = $("queue-body");
     qb.innerHTML = "";
     if (!s.queue.length) {
-      qb.innerHTML = `<tr><td colspan="6" style="color:#808695">队列为空：在下方课程表点“选课”加入</td></tr>`;
+      qb.innerHTML = `<tr><td colspan="6" style="color:#808695">队列为空：在下方课程表点“选课”加入喵</td></tr>`;
     }
     for (const r of s.queue) qb.appendChild(queueRow(r));
     $("start").disabled = !!s.running;
@@ -244,7 +246,7 @@ async function refreshStatus() {
     if (s.running) banner.textContent = s.phase === "waiting"
       ? `等待开抢 ${s.target || ""} …（可点停止取消）`
       : "抢课进行中…（串行请求，间隔 ≥1500ms）";
-    else if (s.phase === "done") banner.textContent = "本轮结束，详见日志。";
+    else if (s.phase === "done") banner.textContent = "本轮结束喵，详见日志。";
     else banner.textContent =
       `${s.semester || "未知学期"} · 待选 ${s.queue.length} 门 · 就绪`;
     if (s.catalog_count > 0 && !facetsLoaded) {
@@ -325,6 +327,8 @@ window.addEventListener("DOMContentLoaded", () => {
     try { localStorage.setItem("cc-theme", dark ? "dark" : "light"); } catch (e) {}
   };
   try {
+    const qp = new URLSearchParams(location.search);
+    if (qp.get("theme") === "dark") localStorage.setItem("cc-theme", "dark");
     if (localStorage.getItem("cc-theme") === "dark") {
       document.body.classList.add("dark");
       $("theme").textContent = "☀️";

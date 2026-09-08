@@ -1,4 +1,4 @@
-<!-- 发布前：全局替换 your-name/SUSTech-CourseCat 为你的仓库地址 -->
+<!-- 发布前：全局替换 WilloTwisper/SUSTech-CourseCat 为你的仓库地址 -->
 # (=^･ω･^=) 抢课猫 CourseCat
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
@@ -14,6 +14,15 @@
 > **觉得好用请右上角 ⭐ Star，并推荐给同学**（Web 版页脚可一键分享）。
 > 仅供个人学习研究，使用本工具产生的任何行为由使用者本人承担，
 > 请确保符合学校规章制度与相关法规（详见文末免责声明）。
+
+## 界面预览
+
+| Web 版（浏览器打开，与教务页同款样式） | TUI 版（终端全屏） |
+| --- | --- |
+| ![web](docs/screenshot-web.png) | ![tui](docs/screenshot-tui.svg) |
+
+> Web 图为内置 Mock 演练模式实拍（零外网请求）；真实数据界面布局完全一致。
+> 右上角 🌙 可切换黑夜模式（`docs/screenshot-web-dark.png`）。
 
 ## 设计原则（与"提速"的关系）
 
@@ -45,14 +54,14 @@
 **方式二：从 GitHub 直接装：**
 
 ```powershell
-pip install "git+https://github.com/your-name/SUSTech-CourseCat.git"
+pip install "git+https://github.com/WilloTwisper/SUSTech-CourseCat.git"
 coursecat-web
 ```
 
 **方式三：源码开发：**
 
 ```powershell
-git clone https://github.com/your-name/SUSTech-CourseCat.git
+git clone https://github.com/WilloTwisper/SUSTech-CourseCat.git
 cd SUSTech-CourseCat
 python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
@@ -221,11 +230,29 @@ src/enroll_helper/
 ├── clocksync.py      # SNTP 校准 + 精确等待
 ├── session.py        # Cookie 导入（Netscape/HAR/原始头）+ httpx 客户端工厂
 ├── cas.py            # 实验性 CAS 登录（内存凭据，不落盘）
+├── login.py          # 一键登录：拉起真实浏览器，经 CDP 自动捕获会话
+├── picker.py         # 交互选课器：搜索/余量/优先级队列
+├── schedule.py       # 上课时间解析 + 冲突检测（单双周/周几/节次）
 ├── tis/              # 适配层：endpoints/models/parser/client
+├── tui.py            # 终端输出层（rich/prompt_toolkit，自动回退纯文本）
+├── tui_app.py        # 全屏 TUI（textual）：队列/参数/日志/加课弹窗
+├── webserver.py      # Web 后端（标准库）：REST + 事件流
+├── web/              # Web 前端：复刻 TIS 选课页的单页应用
 ├── notify.py         # 铃声/Windows 通知/webhook/JSON 报告
 └── mockserver.py     # Mock TIS（演练 + 测试双用）
-tests/                # 引擎/节拍/分类/Cookie/时钟 单元与集成测试
+tests/                # 63 项单元与集成测试（pytest）
 ```
+
+## 常见问题
+
+| 现象 | 原因 / 解法 |
+| --- | --- |
+| `查询请求频率过高` / `jg=-1` | 查询接口的独立限频（比选课更严）。工具会自动退避重试；人多时多等一会儿，**不要**开多实例狂刷 |
+| `会话疑似失效` / 返回登录页 | SESSION 过期：`coursecat --login` 或 Web 版点“重新登录” |
+| 目录为空 / 课程搜不到 | 先点“刷新目录”（首次约半分钟）；确认学期正确 |
+| 开了系统代理/TUN 连不上 | 访问 `*.sustech.edu.cn` 默认直连；TUN 是网卡层拦截，需在代理工具里把该域名加直连规则 |
+| `冲突课程` 列有红字 | 该课与你的已选课时间冲突；Web 版取消“忽略冲突”可直接隐藏这类课 |
+| 怀疑 TIS 又改版了 | 先跑 `--doctor` 看契约检查，再按“再改版应对”一节核对 |
 
 ## 免责声明
 

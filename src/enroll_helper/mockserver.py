@@ -9,29 +9,45 @@ from urllib.parse import parse_qs
 from . import constants as C
 from .tis.models import Course
 
-SEMESTER = {"p_xn": "2026", "p_xq": "1", "p_xnxq": "2026-1", "mxpylx": 1}
+SEMESTER = {"p_xn": "2099", "p_xq": "9", "p_xnxq": "2099-9MOCK", "mxpylx": 1}
 
 CATALOG: dict[str, list[dict]] = {
     "bxxk": [{"id": "MOCK-101", "rwmc": "高等数学B（mock）", "bksrl": 40, "bksyxrs": 32,
               "kcdm": "MA101", "kcmc": "高等数学B", "skyymc": "中文",
               "kkyxmc": "数学系", "jfzlbmc": "十三级制", "xf": "4.0", "zxs": "64.0",
-              "kclbmc": "通识必修课", "kcxzmc": "必修"}],
+              "kclbmc": "通识必修课", "kcxzmc": "必修",
+              "kcxx": '<p><a>林雪</a></p><div class="ivu-tag ivu-tag-cyan">'
+                      '<span><p>1-16周,星期一第1-2节 智华楼107</p></span></div>'}],
     "xxxk": [{"id": "MOCK-102", "rwmc": "中国古代史（mock）", "bksrl": 30, "bksyxrs": 30,
               "kcdm": "HSS201", "kcmc": "中国古代史", "skyymc": "中文",
               "kkyxmc": "人文中心", "jfzlbmc": "十三级制", "xf": "2.0", "zxs": "32.0",
-              "kclbmc": "通识选修课", "kcxzmc": "选修"}],
+              "kclbmc": "通识选修课", "kcxzmc": "选修",
+              "kcxx": '<p><a>司马南</a></p><div class="ivu-tag ivu-tag-cyan">'
+                      '<span><p>1-16周,星期三第5-6节 慧园3栋201</p></span></div>'}],
     "kzyxk": [{"id": "MOCK-103", "rwmc": "数据结构（mock）", "bksrl": 25, "bksyxrs": 23,
               "kcdm": "CS203", "kcmc": "数据结构", "skyymc": "双语",
               "kkyxmc": "计算机系", "jfzlbmc": "十三级制", "xf": "3.0", "zxs": "48.0",
-              "kclbmc": "专业选修课", "kcxzmc": "选修"}],
+              "kclbmc": "专业选修课", "kcxzmc": "选修",
+              "kcxx": '<p><a>陈越</a></p><div class="ivu-tag ivu-tag-cyan">'
+                      '<span><p>1-16周,星期二第3-4节 智华楼502机房</p></span></div>'}],
     "zynknjxk": [{"id": "MOCK-104", "rwmc": "量子力学（mock）", "bksrl": 20, "bksyxrs": 20,
               "kcdm": "PHY204", "kcmc": "量子力学", "skyymc": "双语",
-              "kkyxmc": "物理系", "jfzlbmc": "十三级制", "xf": "3.0", "zxs": "48.0"}],
+              "kkyxmc": "物理系", "jfzlbmc": "十三级制", "xf": "3.0", "zxs": "48.0",
+              "kclbmc": "专业选修课", "kcxzmc": "选修",
+              "kcxx": '<p><a>潘建</a></p><div class="ivu-tag ivu-tag-cyan">'
+                      '<span><p>2-16双周,星期四第7-8节 理学院107</p></span></div>'}],
     "cxxk": [{"id": "MOCK-105", "rwmc": "大学英语重修（mock）", "bksrl": 60, "bksyxrs": 58,
               "kcdm": "E003", "kcmc": "大学英语", "skyymc": "英文",
-              "kkyxmc": "语言中心", "jfzlbmc": "十三级制", "xf": "2.0", "zxs": "32.0"}],
+              "kkyxmc": "语言中心", "jfzlbmc": "十三级制", "xf": "2.0", "zxs": "32.0",
+              "kclbmc": "重修课程", "kcxzmc": "重修",
+              "kcxx": '<p><a>李华</a></p><div class="ivu-tag ivu-tag-cyan">'
+                      '<span><p>1-16周,星期四第1-2节 语言中心305</p></span></div>'}],
     "jhnxk": [],
 }
+
+ENROLLED = [{"rwmc": "大学物理实验-01班-双语", "id": "E-001",
+             "kcxx": '<p><a>赵雷</a></p><div class="ivu-tag ivu-tag-cyan">'
+                     '<span><p>1-16周,星期一第1-2节 实验楼302</p></span></div>'}]
 
 _LOGIN_HTML = "<html><body>统一身份认证 请登录</body></html>"
 _OK_HTML = "<html><body>选课</body></html>"
@@ -63,6 +79,14 @@ class MockTisState:
         if path == "/Xsxk/queryKxrw":
             code = body.get("p_xkfsdm", "")
             return 200, json.dumps({"kxrwList": {"list": CATALOG.get(code, [])}})
+        if path == "/Xsxk/queryYxkc":
+            if "MOCKSESSION=ok" not in cookie:
+                return 200, _LOGIN_HTML
+            return 200, json.dumps({"yxkcList": ENROLLED})
+        if path == "/Xsxk/queryXkgwc":
+            if "MOCKSESSION=ok" not in cookie:
+                return 200, _LOGIN_HTML
+            return 200, json.dumps({"xkgwcList": []})
         if path == "/Xsxk/addGouwuche":
             if "MOCKSESSION=ok" not in cookie:
                 return 200, _LOGIN_HTML

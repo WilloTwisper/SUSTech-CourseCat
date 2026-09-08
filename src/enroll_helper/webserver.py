@@ -134,10 +134,16 @@ class Hub:
 
     def _load_local(self) -> None:
         for cache in sorted(Path(".").glob("catalog_*.json")):
+            if "mock" in cache.name.lower():
+                continue
             try:
                 data = json.loads(cache.read_text(encoding="utf-8"))
+                courses = data.get("courses", {})
+                if any("capacity" not in c or "extra" not in c
+                       for c in courses.values()):
+                    continue
                 from .tis.models import Course
-                self.catalog = {n: Course(**c) for n, c in data["courses"].items()}
+                self.catalog = {n: Course(**c) for n, c in courses.items()}
                 break
             except (OSError, ValueError):
                 continue
@@ -196,7 +202,8 @@ class Hub:
         settings = self._settings(refresh_cache=force)
         self.catalog = load_catalog(tis, sem, settings,
                                     emit=lambda m: self.emit("log", text=m),
-                                    confirm_refresh=False)
+                                    confirm_refresh=False,
+                                    use_cache=not settings.is_local_target)
         return self.catalog
 
     def set_queue(self, names: list[str]) -> tuple[list[str], list[str]]:
