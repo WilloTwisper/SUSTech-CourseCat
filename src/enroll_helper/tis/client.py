@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import email.utils
 import json
 import re
 import time
@@ -219,6 +220,22 @@ class TisClient:
         status = classify(r.status_code, r.text, self.keywords)
         return Attempt(course, status, extract_message(r.text) or r.text[:120], r.status_code, latency)
 
-    def warmup(self) -> int:
+    def warmup(self) -> tuple[int, float | None]:
         r = self.http.get(self.endpoints.referer)
-        return r.status_code
+        server_ts = None
+        try:
+            server_ts = email.utils.parsedate_to_datetime(
+                r.headers.get("date", "")).timestamp()
+        except (TypeError, ValueError):
+            pass
+        return r.status_code, server_ts
+
+    def warmup_checked(self) -> tuple[int, str | None]:
+        status, server_ts = self.warmup()
+        note = None
+        if server_ts:
+            skew = server_ts - time.time()
+            if abs(skew) > 5:
+                note = (f"本机时钟与服务器相差 {skew:+.0f}s；"
+                        f"定时抢课请先校准，否则首发可能偏晚")
+        return status, note

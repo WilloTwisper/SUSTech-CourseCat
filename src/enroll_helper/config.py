@@ -35,6 +35,7 @@ class Settings:
     auto_skip_conflict: bool = True
     retry_full: bool = False
     cascade_on_full: bool = False
+    enrolled_check_every: int = 10
     max_requests: int = 0
     use_ntp: bool = False
     ntp_server: str = "ntp.aliyun.com"
@@ -65,7 +66,8 @@ class Settings:
 
 
 def _coerce(kwargs: dict) -> dict:
-    int_keys = {"interval_ms", "discovery_interval_ms", "max_requests"}
+    int_keys = {"interval_ms", "discovery_interval_ms", "max_requests",
+                "enrolled_check_every"}
     float_keys = {"timeout_s"}
     bool_keys = {"tls_verify", "auto_skip_conflict", "retry_full", "cascade_on_full", "use_ntp",
                  "toast", "non_interactive", "refresh_cache", "cas_login", "dry_run", "no_env_proxy"}
@@ -122,6 +124,8 @@ def _apply_cli_overrides(s: Settings, args) -> None:
             setattr(s, attr, val)
     if args.interval_ms:
         s.interval_ms = int(args.interval_ms)
+    if getattr(args, "enrolled_check_every", 0):
+        s.enrolled_check_every = int(getattr(args, "enrolled_check_every"))
     if getattr(args, "inline_cookies", None):
         s.inline_cookies = list(args.inline_cookies)
     if getattr(args, "cas_login", False):
@@ -133,8 +137,9 @@ def _apply_cli_overrides(s: Settings, args) -> None:
     if getattr(args, "rehearse", False):
         s.base_url = getattr(args, "base_url", "") or "http://127.0.0.1:8765"
         s.tls_verify = False
-    if s.interval_ms < C.MIN_INTERVAL_MS and not s.is_local_target:
-        print(f"[!] 请求间隔 {s.interval_ms}ms 低于服务端限制下限，已强制为 {C.MIN_INTERVAL_MS}ms（仅对非本机目标）")
+    if s.interval_ms < 1500 and not s.is_local_target:
+        print(f"[!] 请求间隔 {s.interval_ms}ms 低于历史观测的服务端限制(~1500ms)。"
+              f"自适应限速会在命中限频时自动退避，请留意限频提示")
     s.interval_ms = s.effective_interval_ms
 
 

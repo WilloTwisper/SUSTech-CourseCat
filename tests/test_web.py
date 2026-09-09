@@ -181,6 +181,34 @@ def test_enrolled_shape(mock, web):
     assert isinstance(d["enrolled"], list)
 
 
+def test_timetable_grouping(mock, web):
+    base, hub = web
+    d = _get(base, "/api/timetable")
+    assert [x["day"] for x in d["days"]] == [
+        "星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+    mon = [x for x in d["days"] if x["day"] == "星期一"][0]
+    assert len(mon["items"]) == 1
+    assert mon["items"][0]["course"] == "大学物理实验-01班-双语"
+    assert (mon["items"][0]["start"], mon["items"][0]["end"]) == (1, 2)
+
+    raw = {"rwmc": "已选课-01班", "id": "E1", "kcdm": "XX101", "kcmc": "已选课",
+           "kcxx": '<p><a>张三</a></p><div class="ivu-tag ivu-tag-cyan">'
+                   '<span><p>1-15单周,星期五第7-8节 另一楼</p></span></div>'}
+    hub._fetch_enrolled_raw = lambda: [raw]
+    hub._enrolled_cache = (0.0, [])
+    d = _get(base, "/api/timetable")
+    fri = [x for x in d["days"] if x["day"] == "星期五"][0]
+    assert len(fri["items"]) == 1
+    assert fri["items"][0]["course"] == "已选课-01班"
+    assert (fri["items"][0]["start"], fri["items"][0]["end"]) == (7, 8)
+    assert "单周" in fri["items"][0]["weeks"]
+
+    e = _get(base, "/api/enrolled")
+    row = e["enrolled"][0]
+    assert row["code"] == "XX101" and row["title"] == "已选课"
+    assert row["name"] == "已选课-01班"
+
+
 def test_conflict_annotation(mock, web):
     from enroll_helper.tis.models import Course
 

@@ -573,8 +573,11 @@ class EnrollApp(App):
                 ev(("log", "[*] 刷新队列余量…"))
                 queue = tis.refresh_seats(queue, self._semester,
                                           Pacer(settings.discovery_interval_ms))
+            warm, note = tis.warmup_checked()
             ev(("log", "[+] 连接预热完成 "
-                       f"HTTP {tis.warmup()}（TLS/HTTP2 已就绪）"))
+                       f"HTTP {warm}（TLS/HTTP2 已就绪）"))
+            if note:
+                ev(("log", f"[!] {note}"))
             if settings.at_time:
                 from .cli import parse_at
                 target = parse_at(settings.at_time)
@@ -595,7 +598,8 @@ class EnrollApp(App):
                         ev(("status", self._status_base() +
                             f" | 开抢倒计时 {target - clock.time():.0f}s"))
                         time.sleep(0.5)
-                    ev(("log", f"[+] 二次预热 HTTP {tis.warmup()}"))
+                    _, note = tis.warmup_checked()
+                    ev(("log", "[+] 二次预热完成" + (f"（{note}）" if note else "")))
                 while clock.time() < target:
                     if self._stop_event.is_set():
                         ev(("log", "[!] 定时已取消"))

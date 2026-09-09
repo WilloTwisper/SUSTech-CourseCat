@@ -11,7 +11,7 @@ DEFAULT_BASE_URL = "https://tis.sustech.edu.cn"
 DEFAULT_CAS_BASE = "https://cas.sustech.edu.cn"
 DEFAULT_CAS_SERVICE = "https://tis.sustech.edu.cn/cas"
 
-MIN_INTERVAL_MS = 1500
+MIN_INTERVAL_MS = 300
 DEFAULT_INTERVAL_MS = 1600
 DEFAULT_DISCOVERY_INTERVAL_MS = 5000
 

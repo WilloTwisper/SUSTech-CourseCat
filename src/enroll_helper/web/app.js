@@ -35,7 +35,10 @@ zh: {
   d3: "如果你觉得好用，欢迎 Star 本项目并推荐给同学（页脚可一键分享）。",
   dOk: "我知道了",
   ribbonHide: "收起 ▴", ribbonShow: "展开 ▾",
-  enroll: "选课", added: "已加入",
+  ttTitle: "我的课表", ttEmpty: "暂无已选课程时间信息",
+  ttView: "课表查看",
+  ttWeeks: "周", ttPeriod: "第", ttTo: "-",
+  enroll: "选课", added: "已加入", yxEnrolled: "已选",
   queueEmpty: "队列为空：在下方课程表点“选课”加入喵",
   enrolledEmpty: "暂无已选课程（退课请去教务页面手动操作）",
   needRefresh: "目录为空：点“刷新目录”（首次约半分钟）",
@@ -86,7 +89,10 @@ en: {
   d3: "If you find it useful, please Star the project and recommend it to friends (one-click share in the footer).",
   dOk: "Got it",
   ribbonHide: "Collapse ▴", ribbonShow: "Expand ▾",
-  enroll: "Enroll", added: "Added",
+  ttTitle: "My Timetable", ttEmpty: "No enrolled course times",
+  ttView: "Timetable",
+  ttWeeks: "", ttPeriod: "P", ttTo: "-",
+  enroll: "Enroll", added: "Added", yxEnrolled: "Enrolled",
   queueEmpty: "Queue empty: hit Enroll below to add some, meow",
   enrolledEmpty: "No enrolled courses (drop courses on the TIS page)",
   needRefresh: "Catalog empty: hit Refresh (~30s first time)",
@@ -182,7 +188,7 @@ function renderTabs() {
   }
 }
 
-function courseRow(r, inQueue) {
+function courseRow(r, inQueue, btnLabel) {
   const tr = document.createElement("tr");
   tr.innerHTML =
     `<td>${esc(r.task)}</td><td>${esc(r.code)}</td>` +
@@ -204,8 +210,8 @@ function courseRow(r, inQueue) {
   btn.className = "btn btn-green";
   btn.style.padding = "0 12px";
   btn.style.height = "28px";
-  btn.textContent = inQueue ? t("added") : t("enroll");
-  btn.disabled = !!inQueue;
+  btn.textContent = btnLabel || (inQueue ? t("added") : t("enroll"));
+  btn.disabled = !!inQueue || !!btnLabel;
   btn.onclick = async () => {
     try {
       await api("/api/queue", {method: "POST",
@@ -284,11 +290,8 @@ async function refreshCourses() {
         body.innerHTML = `<tr><td colspan="14" style="color:#808695">${esc(t("enrolledEmpty"))}</td></tr>`;
       }
       for (const e of d.enrolled) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td colspan="2">${esc(e.name)}</td>` +
-          `<td colspan="11" class="mini">${esc((e.teachers || []).join("、"))} ${esc(e.schedule || "").slice(0, 120)}</td>` +
-          `<td class="mini">${esc(e.id)}</td>`;
-        body.appendChild(tr);
+        const fake = Object.assign({conflicts: [], type_code: "", seats: null}, e);
+        body.appendChild(courseRow(fake, true, t("yxEnrolled")));
       }
       $("pager").innerHTML = `<span>${esc(t("pgTotal", {n: d.enrolled.length}))}</span>`;
       return;
@@ -453,6 +456,40 @@ window.addEventListener("DOMContentLoaded", () => {
   $("hidefull").onchange = () => { page = 1; refreshCourses(); };
   $("school").onchange = () => { page = 1; refreshCourses(); };
   $("cat2").onchange = () => { page = 1; refreshCourses(); };
+  $("ttBtn").onclick = async () => {
+    $("tt-mask").hidden = false;
+    const WDE = {"星期一": "Mon", "星期二": "Tue", "星期三": "Wed", "星期四": "Thu",
+                 "星期五": "Fri", "星期六": "Sat", "星期日": "Sun"};
+    const body = $("tt-body");
+    body.innerHTML = `<div class="mini">…</div>`;
+    try {
+      const d = await api("/api/timetable");
+      body.innerHTML = "";
+      let any = false;
+      for (const day of d.days || []) {
+        if (!day.items.length) continue;
+        any = true;
+        const h = document.createElement("div");
+        h.className = "tt-day";
+        h.textContent = lang === "zh" ? day.day : (WDE[day.day] || day.day);
+        body.appendChild(h);
+        for (const it of day.items) {
+          const div = document.createElement("div");
+          div.className = "tt-item";
+          const when = lang === "zh"
+            ? `${it.weeks} ${it.day}第${it.start}-${it.end}节`
+            : `${it.weeks} ${WDE[it.day] || it.day} ${it.start}-${it.end}`;
+          div.textContent = `${it.course} · ${when}`;
+          body.appendChild(div);
+        }
+      }
+      if (!any) body.innerHTML = `<div class="mini">${esc(t("ttEmpty"))}</div>`;
+    } catch (e) {
+      body.innerHTML = `<div style="color:#ED4014">${esc(t("queryFail") + e.message)}</div>`;
+    }
+  };
+  $("tt-close").onclick = () => { $("tt-mask").hidden = true; };
+  $("tt-mask").onclick = (e) => { if (e.target.id === "tt-mask") e.target.hidden = true; };
   $("fs").onclick = () => {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else document.documentElement.requestFullscreen().catch(() => {});

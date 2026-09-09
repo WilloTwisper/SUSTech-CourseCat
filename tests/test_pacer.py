@@ -33,16 +33,29 @@ def test_penalize_doubles():
     assert state["sleeps"][-1] == 1.0
 
 
-def test_recover_restores_base():
+def test_recover_is_gradual():
     state, clock, sleeper = _fake_clock()
     p = Pacer(500, clock=clock, sleeper=sleeper)
     p.wait()
     p.wait()
     p.penalize()
     p.wait()
+    assert state["sleeps"] == [0.5, 1.0]
+    for _ in range(4):
+        p.recover()
+    assert p.interval == 1.0
     p.recover()
+    assert p.interval == 0.5
     p.wait()
     assert state["sleeps"] == [0.5, 1.0, 0.5]
+
+
+def test_recover_never_below_min():
+    _, clock, sleeper = _fake_clock()
+    p = Pacer(500, clock=clock, sleeper=sleeper, min_ms=400)
+    for _ in range(30):
+        p.recover()
+    assert p.interval == 0.4
 
 
 def test_late_call_no_extra_sleep():

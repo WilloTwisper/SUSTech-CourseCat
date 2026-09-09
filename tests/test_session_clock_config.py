@@ -37,7 +37,8 @@ def test_parse_server_time():
 
 
 def test_clamp_interval():
-    assert clamp_interval_ms(500, False) == 1500
+    assert clamp_interval_ms(500, False) == 500
+    assert clamp_interval_ms(100, False) == 300
     assert clamp_interval_ms(2000, False) == 2000
     assert clamp_interval_ms(1, True) == 1
     assert clamp_interval_ms(0, True) == 1

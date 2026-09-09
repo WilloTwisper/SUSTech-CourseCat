@@ -69,3 +69,19 @@ def courses_conflict(slots_a: list[Slot], slots_b: list[Slot]) -> bool:
 def find_conflicts(my_slots: list[Slot], enrolled: list[tuple[str, list[Slot]]]) -> list[str]:
     return [name for name, slots in enrolled
             if slots and my_slots and courses_conflict(my_slots, slots)]
+
+
+def weeks_text(weeks: set[int]) -> str:
+    if not weeks:
+        return ""
+    if len(weeks) == 1:
+        return f"{min(weeks)}周"
+    lo, hi = min(weeks), max(weeks)
+    full = set(range(lo, hi + 1))
+    if weeks == full:
+        return f"{lo}-{hi}周"
+    if weeks == {w for w in full if w % 2 == 1}:
+        return f"{lo}-{hi}单周"
+    if weeks == {w for w in full if w % 2 == 0}:
+        return f"{lo}-{hi}双周"
+    return f"{lo}-{hi}周*"

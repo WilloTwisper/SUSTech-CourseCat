@@ -51,7 +51,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--cookie", dest="inline_cookies", action="append", default=[], metavar="K=V", help="直接注入单个 Cookie，可重复")
     p.add_argument("--cas-login", action="store_true", help="实验性：用 CAS 账号密码登录（不落盘）")
     p.add_argument("--base-url", help="覆盖 TIS 地址")
-    p.add_argument("--interval-ms", type=int, help="抢课请求间隔（非本机目标强制 ≥1500ms）")
+    p.add_argument("--interval-ms", type=int, help="抢课请求起始间隔（自适应限速，遇限频自动退避；低于1500ms有触发限流风险）")
+    p.add_argument("--enrolled-check-every", type=int, default=0, help="每N次请求后用已选课表核对队列（0=关闭，默认10）")
     p.add_argument("--discovery-interval-ms", type=int, help="课程目录下载间隔")
     p.add_argument("--at", dest="at_time", help="定时开抢 HH:MM[:SS]（配合 --use-ntp 校准）")
     p.add_argument("--use-ntp", action="store_true", help="用 SNTP 校准时钟")
@@ -434,8 +435,10 @@ def main(argv=None) -> None:
                                         Pacer(settings.discovery_interval_ms)))
         print_queue(queue)
 
-    warm = tis.warmup()
+    warm, note = tis.warmup_checked()
     print(f"[+] 连接预热完成 HTTP {warm}（TLS/HTTP2 已就绪）")
+    if note:
+        print(f"[!] {note}")
 
     clock = Clock(0.0)
     if settings.use_ntp:
@@ -452,7 +455,8 @@ def main(argv=None) -> None:
             from .tui import countdown as tui_countdown
             if target - clock.time() > 10:
                 wait_until(clock, target - 2)
-                print(f"[+] 二次预热 HTTP {tis.warmup()}")
+                _, note = tis.warmup_checked()
+                print(f"[+] 二次预热完成" + (f"（{note}）" if note else ""))
             tui_countdown(clock, target)
         except KeyboardInterrupt:
             raise SystemExit("\n[!] 定时已取消，未发出任何请求")

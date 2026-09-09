@@ -23,7 +23,7 @@ from .login import run_login
 from .notify import Notifier
 from .pacer import Pacer
 from .picker import write_queue
-from .schedule import find_conflicts, slots_from_extra
+from .schedule import find_conflicts, slots_from_extra, weeks_text
 from .session import build_client
 from .tis.client import TisApiError, TisClient, summarize_kcxx
 
@@ -234,6 +234,9 @@ class Hub:
         return tis.query_enrolled(sem)
 
     def enrolled_detailed(self) -> list:
+        from .tis.client import _to_int, build_extra
+        from .tis.models import Course
+
         now = time.time()
         if now - self._enrolled_cache[0] < 60:
             return self._enrolled_cache[1]
@@ -242,13 +245,39 @@ class Hub:
             name = str(it.get("rwmc") or it.get("kcmc") or "")
             if not name:
                 continue
+            course = Course(
+                course_id=str(it.get("id") or ""), name=name, type_code="",
+                type_name="已选",
+                capacity=_to_int(it.get("bksrl")), enrolled=_to_int(it.get("bksyxrs")),
+                extra=build_extra(it))
+            row = row_dict(course)
             teachers, schedule, tags = summarize_kcxx(str(it.get("kcxx") or ""))
-            extra = {"sched_tags": tags, "schedule": schedule}
-            out.append({"name": name, "id": str(it.get("id") or ""),
-                        "teachers": teachers, "schedule": schedule,
-                        "slots": slots_from_extra(extra)})
+            row["teachers"] = teachers
+            row["schedule"] = schedule
+            row["slots"] = slots_from_extra(
+                {"sched_tags": tags, "schedule": schedule})
+            out.append(row)
         self._enrolled_cache = (now, out)
         return out
+
+    def timetable(self) -> list:
+        grid: dict[int, list] = {i: [] for i in range(1, 8)}
+        try:
+            enrolled = self.enrolled_detailed()
+        except Exception:
+            enrolled = []
+        for row in enrolled:
+            for s in row.get("slots", []):
+                grid[s.weekday].append({
+                    "course": row["task"], "start": s.start, "end": s.end,
+                    "weeks": weeks_text(set(s.weeks)),
+                    "schedule": row.get("schedule", "")[:120],
+                })
+        for items in grid.values():
+            items.sort(key=lambda x: (x["start"], x["end"]))
+        names = ["一", "二", "三", "四", "五", "六", "日"]
+        return [{"day": f"星期{names[d - 1]}", "items": grid[d]}
+                for d in range(1, 8)]
 
     def start_job(self, opts: dict) -> None:
         with self._lock:
@@ -308,7 +337,10 @@ class Hub:
             else:
                 self.emit("log", text="[*] 刷新队列余量…")
                 queue = tis.refresh_seats(queue, sem, Pacer(self.discovery_ms))
-            self.emit("log", text=f"[+] 连接预热完成 HTTP {tis.warmup()}")
+            warm, note = tis.warmup_checked()
+            self.emit("log", text=f"[+] 连接预热完成 HTTP {warm}")
+            if note:
+                self.emit("log", text=f"[!] {note}")
             if settings.at_time:
                 from .cli import parse_at
                 target = parse_at(settings.at_time)
@@ -495,9 +527,12 @@ def make_handler(hub: Hub):
                 elif path == "/api/enrolled":
                     detailed = hub.enrolled_detailed()
                     self._send(200, {"enrolled": [
-                        {"name": e["name"], "id": e["id"],
-                         "teachers": e["teachers"], "schedule": e["schedule"]}
+                        {"name": e["task"], "id": e["id"],
+                         "teachers": e["teachers"], "schedule": e["schedule"],
+                         "code": e["code"], "title": e["title"]}
                         for e in detailed]})
+                elif path == "/api/timetable":
+                    self._send(200, {"days": hub.timetable()})
                 else:
                     self._send(404, {"error": "not found"})
             except (RuntimeError, SystemExit) as e:
@@ -560,7 +595,7 @@ def courses_view(hub: Hub, tab: str, q: str, hide_full: bool, school: str = "",
         enrolled = hub.enrolled_detailed()
     except Exception:
         enrolled = []
-    emap = [(e["name"], e["slots"]) for e in enrolled]
+    emap = [(e["task"], e["slots"]) for e in enrolled]
     rows = []
     for c in matched:
         r = row_dict(c)

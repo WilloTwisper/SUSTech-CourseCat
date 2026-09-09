@@ -5,7 +5,7 @@ from enroll_helper.tui_app import move_item
 def test_make_args_pipeline():
     args = make_args(interval_ms=500)
     s = apply_cli_overrides(load_settings(None, args), args)
-    assert s.interval_ms == 1500
+    assert s.interval_ms == 500
     assert s.non_interactive is True
     assert s.courses_file == "courses.txt"
     assert s.submit_target == "rwtjzyx"

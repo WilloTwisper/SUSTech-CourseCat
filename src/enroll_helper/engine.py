@@ -87,6 +87,7 @@ class EnrollEngine:
                 attempt.request_start = start
                 self._record(attempt)
                 self._handle(queue, attempt)
+                self._maybe_drop_enrolled(queue)
         except KeyboardInterrupt:
             if self._stopping:
                 raise
@@ -174,6 +175,26 @@ class EnrollEngine:
             if self.notifier:
                 self.notifier.aborted("登录会话已失效，请刷新 Cookie 后重试")
             return
+
+    def _maybe_drop_enrolled(self, queue: deque[Course]) -> None:
+        every = getattr(self.settings, "enrolled_check_every", 0) or 0
+        if every <= 0 or not queue:
+            return
+        if self.summary.total_requests % every != 0:
+            return
+        try:
+            items = self.tis.query_enrolled(self.semester)
+        except Exception:
+            return
+        ids = {str(it.get("id") or "") for it in items}
+        names = {str(it.get("rwmc") or it.get("kcmc") or "") for it in items}
+        for course in [c for c in queue]:
+            if (course.course_id and course.course_id in ids) or course.name in names:
+                queue.remove(course)
+                self.summary.skipped.append((course, "已在课表中（自动检测）"))
+                print_note(f"{course.name} 已在课表中，自动跳过")
+                if self.notifier:
+                    self.notifier.success(course, already=True)
 
     def _pause_for_decision(self, queue: deque[Course], attempt: Attempt, reason: str) -> None:
         if self.settings.non_interactive:
