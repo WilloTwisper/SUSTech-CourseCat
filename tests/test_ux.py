@@ -177,3 +177,21 @@ def test_engine_second_run_recovers_after_force(make_settings):
     engine = EnrollEngine(tis, object(), Pacer(1), make_settings())
     s = engine.run(deque([course]))
     assert s.successes == [course]
+
+
+def test_catalog_cache_timestamp(tmp_path, monkeypatch, make_settings):
+    import json
+    from pathlib import Path
+
+    monkeypatch.chdir(tmp_path)
+    from enroll_helper.cli import cache_age_text, dump_catalog, load_catalog
+    from enroll_helper.tis.models import Course, Semester
+
+    sem = Semester("2026-2027", "1", "2026-20271")
+    dump_catalog({"A": Course("1", "A", "xxxk", "通识选修", 20, 18)}, sem)
+    data = json.loads(Path("catalog_2026-20271.json").read_text(encoding="utf-8"))
+    assert data["fetched_at"] > 0
+    out = load_catalog(object(), sem, make_settings(), emit=lambda *a: None)
+    assert out["A"].enrolled == 18
+    assert cache_age_text(data["fetched_at"]).endswith("分钟前")
+    assert cache_age_text(None) == "未知时间"

@@ -109,6 +109,7 @@ class Hub:
         self.tis: TisClient | None = None
         self.semester = None
         self.catalog: dict = {}
+        self.catalog_ts = None
         self.queue: list[str] = []
         self.status_map: dict[str, dict] = {}
         self.running = False
@@ -144,6 +145,7 @@ class Hub:
                     continue
                 from .tis.models import Course
                 self.catalog = {n: Course(**c) for n, c in courses.items()}
+                self.catalog_ts = data.get("fetched_at")
                 break
             except (OSError, ValueError):
                 continue
@@ -204,6 +206,12 @@ class Hub:
                                     emit=lambda m: self.emit("log", text=m),
                                     confirm_refresh=False,
                                     use_cache=not settings.is_local_target)
+        try:
+            data = json.loads(Path(f"catalog_{sem.p_xnxq}.json").read_text(
+                encoding="utf-8"))
+            self.catalog_ts = data.get("fetched_at") or time.time()
+        except (OSError, ValueError):
+            self.catalog_ts = time.time()
         return self.catalog
 
     def set_queue(self, names: list[str]) -> tuple[list[str], list[str]]:
@@ -382,11 +390,17 @@ class Hub:
                 "status": st.get("status", "等待"),
                 "message": st.get("message", ""),
             })
+        ts = self.catalog_ts
+        if ts:
+            snap = datetime.fromtimestamp(ts).strftime("%H:%M")
+        else:
+            snap = ""
         return {
             "session": self.has_session_source(),
             "semester": self.semester.label() if self.semester else "",
             "semester_code": self.semester.p_xnxq if self.semester else "",
             "catalog_count": len(self.catalog),
+            "cache_snap": snap,
             "queue": rows,
             "running": self.running,
             "phase": self.phase,

@@ -117,7 +117,8 @@ def load_catalog(tis: TisClient, semester, settings: Settings,
                        for c in data["courses"].values()):
                     emit("[!] 目录缓存为旧格式（无余量/详情字段），重新下载…")
                 else:
-                    emit(f"[+] 使用课程目录缓存 {cache}")
+                    emit(f"[+] 使用课程目录缓存 {cache}"
+                         f"（{cache_age_text(data.get('fetched_at'))}）")
                     return {n: Course(**c) for n, c in data["courses"].items()}
     emit("[*] 从服务器下载课程目录（6 类，逐类限速）...")
     catalog = tis.query_courses(semester, Pacer(settings.discovery_interval_ms),
@@ -131,11 +132,21 @@ def load_catalog(tis: TisClient, semester, settings: Settings,
 def dump_catalog(catalog: dict[str, Course], semester) -> None:
     cache = Path(f"catalog_{semester.p_xnxq}.json")
     data = {"p_xnxq": semester.p_xnxq,
+            "fetched_at": time.time(),
             "courses": {n: {"course_id": c.course_id, "name": c.name, "type_code": c.type_code,
                             "type_name": c.type_name, "capacity": c.capacity,
                             "enrolled": c.enrolled, "extra": c.extra}
                         for n, c in catalog.items()}}
     cache.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def cache_age_text(ts: float | None) -> str:
+    if not ts:
+        return "未知时间"
+    mins = max(int((time.time() - ts) // 60), 0)
+    if mins < 60:
+        return f"{mins}分钟前"
+    return f"{mins // 60}小时{mins % 60:02d}分钟前"
 
 
 def parse_wanted(path: str) -> list[str]:

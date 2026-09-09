@@ -248,7 +248,8 @@ async function refreshStatus() {
       : "抢课进行中…（串行请求，间隔 ≥1500ms）";
     else if (s.phase === "done") banner.textContent = "本轮结束喵，详见日志。";
     else banner.textContent =
-      `${s.semester || "未知学期"} · 待选 ${s.queue.length} 门 · 就绪`;
+      `${s.semester || "未知学期"} · 待选 ${s.queue.length} 门` +
+      (s.cache_snap ? ` · 目录快照 ${s.cache_snap}` : "") + ` · 就绪`;
     if (s.catalog_count > 0 && !facetsLoaded) {
       facetsLoaded = true;
       loadFacets();
