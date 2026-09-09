@@ -201,6 +201,20 @@ copy courses.example.txt courses.txt
 | 学期初证书异常 | `--tls-no-verify`（仅应急） |
 | 成功推送 | `--webhook https://...`（POST `{"content": ...}`，Discord/Bark/企业微信兼容） |
 
+### 5. 抢课日战术（先到先得 / 定时批量释放）
+
+- 表上“余X”是目录快照，抢课时段几秒就变；**唯一真理是服务端每次返回的裁决**，
+  FULL 时若快照还有余量，日志会额外打印配额快照供复盘
+- 退课名额若按固定时刻批量释放（如每天 13:00），提前 2 秒进场、让请求流 cross 过释放点：
+
+```powershell
+.venv\Scripts\coursecat --cookies cookies.txt --courses courses.txt `
+  --at "2026-09-09 12:59:58" --use-ntp --retry-full --cascade --report report.json
+```
+
+- `--use-ntp` 校准时钟是关键：早/晚 1 秒都可能错过整批释放
+- 当天已满且无释放窗口时，`--retry-full` 蹲守意义不大（退课要等下一释放点），省电关机
+
 ### 运维
 
 - 每次运行自动落盘 `logs/run_YYYYmmdd_HHMMSS.log`（逐请求明细）；

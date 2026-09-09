@@ -36,3 +36,13 @@ def test_unknown_failed():
 def test_extract_message():
     assert extract_message('{"jg":"0","message":"人数已满"}') == "人数已满"
     assert extract_message("<html></html>") == ""
+
+
+def test_build_extra_keeps_quota_keys():
+    from enroll_helper.tis.client import build_extra
+
+    ex = build_extra({"kcdm": "X", "cq_sybksrl": "5", "rl1": "40",
+                      "rl1xkrs": "38", "zrl": "100", "kcxx": ""})
+    assert ex["cq_sybksrl"] == "5"
+    assert ex["rl1"] == "40"
+    assert ex["teachers"] == [] and ex["sched_tags"] == []

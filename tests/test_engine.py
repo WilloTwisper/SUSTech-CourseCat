@@ -114,6 +114,25 @@ def test_conflict_no_skip_single_keeps_head(mock, tis, make_settings):
     assert s.status_counts["CONFLICT"] == 2
 
 
+def test_full_with_stale_seats_note(make_settings, capsys):
+    from collections import deque
+
+    from enroll_helper.engine import EnrollEngine
+    from enroll_helper.pacer import Pacer
+    from enroll_helper.tis.models import Attempt, Course, Status
+
+    course = Course("X1", "测试课", "xxxk", capacity=10, enrolled=7,
+                    extra={"cq_sybksrl": "0", "rl1": "40"})
+    engine = EnrollEngine(object(), object(), Pacer(1), make_settings())
+    q = deque([course])
+    engine._handle(q, Attempt(course, Status.FULL, "人数已满", 200, 5.0))
+
+    assert list(q) == []
+    out = capsys.readouterr().out
+    assert "快照余3" in out
+    assert "cq_sybksrl=0" in out
+
+
 def test_refresh_seats(mock, tis):
     from enroll_helper.tis.models import Course
 

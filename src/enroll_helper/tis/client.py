@@ -13,7 +13,9 @@ from .models import Attempt, Course, Semester, Status
 from .parser import classify, extract_message
 
 ROW_KEEP = ("kcdm", "kcmc", "kcmc_en", "rwh", "kclb", "kclbmc", "kcxz", "kcxzmc",
-            "rwlxmc", "skyymc", "kkyxmc", "jfzlbmc", "xf", "zxs", "xiaoqumc")
+            "rwlxmc", "skyymc", "kkyxmc", "jfzlbmc", "xf", "zxs", "xiaoqumc",
+            "cq_sybksrl", "cq_sydwrl", "rl1", "rl2", "rl1xkrs", "rl2xkrs",
+            "zrl", "rwrs", "ybksrl", "dnrl", "dnyxrlrs")
 
 
 class TisApiError(RuntimeError):

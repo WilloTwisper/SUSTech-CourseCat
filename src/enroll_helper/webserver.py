@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlparse
 from . import constants as C
 from .cli import (apply_cli_overrides, load_catalog, load_settings, make_args,
                   parse_at, parse_wanted, resolve_cookies)
-from .clocksync import Clock, sntp_offset
+from .clocksync import Clock, imminent_start, sntp_offset
 from .config import Settings
 from .engine import EnrollEngine
 from .login import run_login
@@ -291,6 +291,12 @@ class Hub:
                 use_ntp=bool(opts.get("ntp")),
                 at_time=opts.get("at") if mode == "at" else None)
             settings.auto_skip_conflict = bool(opts.get("ignore_conflict", True))
+            at_text = opts.get("at") if mode == "at" else None
+            if imminent_start(at_text):
+                self.emit("log", text="[i] 临近开抢时刻，跳过余量刷新")
+            else:
+                self.emit("log", text="[*] 刷新队列余量…")
+                queue = tis.refresh_seats(queue, sem, Pacer(self.discovery_ms))
             self.emit("log", text=f"[+] 连接预热完成 HTTP {tis.warmup()}")
             if settings.at_time:
                 from .cli import parse_at

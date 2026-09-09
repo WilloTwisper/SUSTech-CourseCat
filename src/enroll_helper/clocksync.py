@@ -3,6 +3,7 @@ from __future__ import annotations
 import socket
 import struct
 import time
+from datetime import datetime
 
 _NTP_EPOCH_DELTA = 2_208_988_800
 
@@ -51,3 +52,25 @@ def wait_until(clock: Clock, target_epoch: float, stop_check=None) -> None:
             time.sleep(min(remaining - 0.2, 0.5))
         else:
             time.sleep(0.01)
+
+
+def imminent_start(at_time: str | None, margin_s: float = 90.0) -> bool:
+    """定时开抢是否已临近（刷新余量会吃掉窗口时返回 True）。"""
+    if not at_time:
+        return False
+    try:
+        target = datetime.fromisoformat(at_time.strip())
+    except ValueError:
+        try:
+            nums = [int(p) for p in at_time.strip().split(":")[:3]]
+        except ValueError:
+            return False
+        while len(nums) < 3:
+            nums.append(0)
+        try:
+            now = datetime.now()
+            target = now.replace(hour=nums[0], minute=nums[1],
+                                 second=nums[2], microsecond=0)
+        except ValueError:
+            return False
+    return 0 < target.timestamp() - time.time() <= margin_s

@@ -132,6 +132,17 @@ class EnrollEngine:
                 queue.append(queue.popleft())
             return
         if st is Status.FULL:
+            cap, enr = attempt.course.capacity, attempt.course.enrolled
+            if cap is not None and enr is not None and cap - enr > 0:
+                print_note(f"{attempt.course.name} 快照余{cap - enr}，"
+                           f"但服务端判定已满（可能刚被抢完），以服务端为准")
+                quota = {k: v for k, v in (attempt.course.extra or {}).items()
+                         if k in ("cq_sybksrl", "cq_sydwrl", "rl1", "rl2",
+                                  "rl1xkrs", "rl2xkrs", "zrl", "rwrs",
+                                  "ybksrl", "dnrl", "dnyxrlrs") and v is not None}
+                if quota:
+                    print_note("服务端配额快照：" +
+                               " ".join(f"{k}={v}" for k, v in quota.items()))
             if not self.settings.retry_full:
                 queue.popleft()
                 self.summary.skipped.append((attempt.course, "人数已满"))

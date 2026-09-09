@@ -23,7 +23,7 @@ from textual.widgets import (Button, Checkbox, DataTable, Footer, Input,
 
 from .cli import (apply_cli_overrides, load_catalog, load_settings, make_args,
                   parse_at, parse_wanted, resolve_cookies)
-from .clocksync import Clock, sntp_offset
+from .clocksync import Clock, imminent_start, sntp_offset
 from .engine import EnrollEngine
 from .login import run_login
 from .notify import Notifier
@@ -566,6 +566,13 @@ class EnrollApp(App):
             if not queue:
                 ev(("error", "没有可用的待选课程（用 a 重新添加）"))
                 return
+            at_text = settings.at_time
+            if imminent_start(at_text):
+                ev(("log", "[i] 临近开抢时刻，跳过余量刷新"))
+            else:
+                ev(("log", "[*] 刷新队列余量…"))
+                queue = tis.refresh_seats(queue, self._semester,
+                                          Pacer(settings.discovery_interval_ms))
             ev(("log", "[+] 连接预热完成 "
                        f"HTTP {tis.warmup()}（TLS/HTTP2 已就绪）"))
             if settings.at_time:

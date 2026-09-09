@@ -11,6 +11,22 @@ def test_compute_offset():
     assert compute_offset(0, 25, 25, 30) == 10
 
 
+def test_imminent_start():
+    from datetime import datetime, timedelta
+
+    from enroll_helper.clocksync import imminent_start
+
+    assert imminent_start(None) is False
+    assert imminent_start("") is False
+    future = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
+    assert imminent_start(future) is False
+    soon = (datetime.now() + timedelta(seconds=30)).strftime("%H:%M:%S")
+    assert imminent_start(soon) is True
+    past = (datetime.now() - timedelta(hours=1)).strftime("%H:%M")
+    assert imminent_start(past) is False
+    assert imminent_start("not-a-time") is False
+
+
 def test_parse_server_time():
     secs = 1_000_000_000 + 2_208_988_800
     frac = int(0.5 * 2 ** 32)

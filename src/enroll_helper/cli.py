@@ -14,7 +14,7 @@ from urllib.parse import urlparse
 from . import __version__
 from . import constants as C
 from .cas import cas_login, prompt_credentials
-from .clocksync import Clock, sntp_offset, wait_until
+from .clocksync import Clock, imminent_start, sntp_offset, wait_until
 from .config import Settings, clamp_interval_ms, load_settings
 from .engine import EnrollEngine, merge_summaries
 from .login import run_login
@@ -414,6 +414,14 @@ def main(argv=None) -> None:
     print(f"[+] 待选队列（严格按优先级）:")
     print_queue(queue)
     print("[i] 余量取自目录缓存（--pick 里输入 r 可刷新）")
+
+    if imminent_start(settings.at_time):
+        print("[i] 临近开抢时刻，跳过余量刷新（以实时请求为准）")
+    else:
+        print("[*] 刷新队列余量…")
+        queue = deque(tis.refresh_seats(list(queue), semester,
+                                        Pacer(settings.discovery_interval_ms)))
+        print_queue(queue)
 
     warm = tis.warmup()
     print(f"[+] 连接预热完成 HTTP {warm}（TLS/HTTP2 已就绪）")
