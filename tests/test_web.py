@@ -164,6 +164,17 @@ def test_stop_mid_run(mock, web):
     assert _get(base, "/api/status")["running"] is False
 
 
+def test_status_watch_flag(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    from enroll_helper.webserver import Hub
+
+    hub = Hub()
+    hub.queue = ["A"]
+    hub.watchlist = ["A"]
+    rows = hub.status()["queue"]
+    assert rows[0]["watch"] is True
+
+
 def test_enrolled_shape(mock, web):
     base, hub = web
     d = _get(base, "/api/enrolled")

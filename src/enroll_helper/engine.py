@@ -20,6 +20,7 @@ class RunSummary:
         self.request_times: list[float] = []
         self.latencies_ms: list[float] = []
         self.attempts: list[Attempt] = []
+        self.watchlist: list[Course] = []
         self.started_at = time.time()
 
     def line(self) -> str:
@@ -42,6 +43,9 @@ def merge_summaries(summaries: list) -> RunSummary:
         merged.request_times += s.request_times
         merged.latencies_ms += s.latencies_ms
         merged.attempts += s.attempts
+        for c in s.watchlist:
+            if c not in merged.watchlist:
+                merged.watchlist.append(c)
     if summaries:
         merged.remaining = summaries[-1].remaining
         merged.aborted = summaries[-1].aborted
@@ -151,6 +155,11 @@ class EnrollEngine:
             if streak == 5:
                 print_note(f"{attempt.course.name} 已连续满员5次：显示余量可能滞后"
                            f"或受子配额限制；若本地是定时释放规则，建议等下一释放点再试")
+                if cap is not None and enr is not None and cap - enr > 0 \
+                        and attempt.course not in self.summary.watchlist:
+                    self.summary.watchlist.append(attempt.course)
+                    print_note(f"{attempt.course.name} 已加入待释放观察名单"
+                               f"（快照余{cap - enr}，开闸时优先）")
             if not self.settings.retry_full:
                 queue.popleft()
                 self.summary.skipped.append((attempt.course, "人数已满"))

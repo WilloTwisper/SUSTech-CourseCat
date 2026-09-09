@@ -76,6 +76,7 @@ def summary_dict(s) -> dict:
         "successes": [c.display() for c in s.successes],
         "skipped": [{"course": c.display(), "reason": r} for c, r in s.skipped],
         "remaining": [c.display() for c in s.remaining],
+        "watchlist": [c.name for c in s.watchlist],
         "aborted": s.aborted,
         "avg_latency_ms": round(sum(s.latencies_ms) / len(s.latencies_ms), 1) if s.latencies_ms else 0,
     }
@@ -112,6 +113,7 @@ class Hub:
         self.catalog_ts = None
         self.queue: list[str] = []
         self.status_map: dict[str, dict] = {}
+        self.watchlist: list[str] = []
         self.running = False
         self.phase = "idle"
         self.target = None
@@ -256,6 +258,7 @@ class Hub:
             self.phase = "preparing"
             self.summary = None
             self.status_map = {}
+            self.watchlist = []
             if opts.get("queue") is not None:
                 self.set_queue(list(opts["queue"]))
         self._stop.clear()
@@ -337,6 +340,7 @@ class Hub:
             engine.on_attempt = self._note_attempt
             summary = engine.run(deque(queue), 0)
             self.summary = summary_dict(summary)
+            self.watchlist = list(self.summary.get("watchlist", []))
             self.emit("done", summary=self.summary)
             self.phase = "done"
         except (RuntimeError, SystemExit) as e:
@@ -387,8 +391,11 @@ class Hub:
                 "index": i, "name": n,
                 "type": c.type_name if c else "",
                 "seats": c.seats_text() if c else "--",
+                "cap": c.capacity if c else None,
+                "enrolled": c.enrolled if c else None,
                 "status": st.get("status", "等待"),
                 "message": st.get("message", ""),
+                "watch": n in self.watchlist,
             })
         ts = self.catalog_ts
         if ts:

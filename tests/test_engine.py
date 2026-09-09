@@ -151,7 +151,7 @@ def test_persistent_full_hint_once(make_settings, capsys):
     from enroll_helper.pacer import Pacer
     from enroll_helper.tis.models import Attempt, Course, Status
 
-    course = Course("X1", "测试课", "xxxk", capacity=20, enrolled=20)
+    course = Course("X1", "测试课", "xxxk", capacity=20, enrolled=17)
     engine = EnrollEngine(object(), object(), Pacer(1),
                           make_settings(retry_full=True))
     q = deque([course])
@@ -160,4 +160,21 @@ def test_persistent_full_hint_once(make_settings, capsys):
             q, Attempt(course, Status.FULL, "人数已满", 200, 5.0))
     out = capsys.readouterr().out
     assert out.count("连续满员5次") == 1
-    assert list(q) == [course]
+    assert [c.course_id for c in engine.summary.watchlist] == ["X1"]
+
+
+def test_watchlist_merged_and_reported(tmp_path, make_settings):
+    from enroll_helper.engine import RunSummary, merge_summaries
+    from enroll_helper.notify import save_report
+    from enroll_helper.tis.models import Course
+
+    a = RunSummary()
+    a.watchlist = [Course("X1", "课1", "xxxk")]
+    b = RunSummary()
+    m = merge_summaries([a, b])
+    assert [c.course_id for c in m.watchlist] == ["X1"]
+    p = tmp_path / "r.json"
+    save_report(str(p), m)
+    import json
+    data = json.loads(p.read_text(encoding="utf-8"))
+    assert any("课1" in s for s in data["watchlist"])

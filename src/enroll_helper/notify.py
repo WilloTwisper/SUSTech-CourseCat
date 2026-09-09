@@ -56,6 +56,7 @@ def save_report(path: str, summary) -> None:
         "skipped": [{"course": c.display(), "reason": r} for c, r in summary.skipped],
         "remaining": [c.display() for c in summary.remaining],
         "aborted": summary.aborted,
+        "watchlist": [c.display() for c in getattr(summary, "watchlist", [])],
         "avg_latency_ms": round(sum(summary.latencies_ms) / len(summary.latencies_ms), 1) if summary.latencies_ms else 0,
         "attempts": [{"course": a.course.name, "status": a.status.value, "message": a.message,
                       "http_status": a.http_status, "latency_ms": round(a.latency_ms, 1),
