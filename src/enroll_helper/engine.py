@@ -65,6 +65,7 @@ class EnrollEngine:
         self.settings = settings
         self.notifier = notifier
         self.quiet = quiet
+        self._note = (lambda *a, **k: None) if quiet else print_note
         self.summary = RunSummary()
         self._commands: deque[str] = deque()
         self._stdin_thread: threading.Thread | None = None
@@ -92,7 +93,7 @@ class EnrollEngine:
             if self._stopping:
                 raise
             self._stopping = True
-            print_note("已请求停止（再按一次 Ctrl+C 强制退出）")
+            self._note("已请求停止（再按一次 Ctrl+C 强制退出）")
         finally:
             self.summary.remaining = list(queue)
         return self.summary
@@ -142,24 +143,24 @@ class EnrollEngine:
         if st is Status.FULL:
             cap, enr = attempt.course.capacity, attempt.course.enrolled
             if cap is not None and enr is not None and cap - enr > 0:
-                print_note(f"{attempt.course.name} 快照余{cap - enr}，"
+                self._note(f"{attempt.course.name} 快照余{cap - enr}，"
                            f"但服务端判定已满（可能刚被抢完），以服务端为准")
                 quota = {k: v for k, v in (attempt.course.extra or {}).items()
                          if k in ("cq_sybksrl", "cq_sydwrl", "rl1", "rl2",
                                   "rl1xkrs", "rl2xkrs", "zrl", "rwrs",
                                   "ybksrl", "dnrl", "dnyxrlrs") and v is not None}
                 if quota:
-                    print_note("服务端配额快照：" +
+                    self._note("服务端配额快照：" +
                                " ".join(f"{k}={v}" for k, v in quota.items()))
             streak = self._full_streak.get(attempt.course.course_id, 0) + 1
             self._full_streak[attempt.course.course_id] = streak
             if streak == 5:
-                print_note(f"{attempt.course.name} 已连续满员5次：显示余量可能滞后"
+                self._note(f"{attempt.course.name} 已连续满员5次：显示余量可能滞后"
                            f"或受子配额限制；若本地是定时释放规则，建议等下一释放点再试")
                 if cap is not None and enr is not None and cap - enr > 0 \
                         and attempt.course not in self.summary.watchlist:
                     self.summary.watchlist.append(attempt.course)
-                    print_note(f"{attempt.course.name} 已加入待释放观察名单"
+                    self._note(f"{attempt.course.name} 已加入待释放观察名单"
                                f"（快照余{cap - enr}，开闸时优先）")
             if not self.settings.retry_full:
                 queue.popleft()
@@ -192,7 +193,7 @@ class EnrollEngine:
             if (course.course_id and course.course_id in ids) or course.name in names:
                 queue.remove(course)
                 self.summary.skipped.append((course, "已在课表中（自动检测）"))
-                print_note(f"{course.name} 已在课表中，自动跳过")
+                self._note(f"{course.name} 已在课表中，自动跳过")
                 if self.notifier:
                     self.notifier.success(course, already=True)
 

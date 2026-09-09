@@ -120,22 +120,50 @@ class TisClient:
                 backoff = min(backoff * 2, 30.0)
         return []
 
-    def refresh_seats(self, courses: list, semester: Semester,
-                      pacer=None, progress=None) -> list:
-        updated: dict[str, Course] = {}
-        codes = sorted({c.type_code for c in courses})
-        for i, code in enumerate(codes):
+    def fetch_course_map(self, codes, semester, pacer=None, progress=None) -> dict[str, dict]:
+        items: dict[str, dict] = {}
+        for i, code in enumerate(sorted(codes)):
             if i and pacer is not None:
                 pacer.wait()
-            if progress:
-                progress(f"刷新 [{code}] 余量…")
             for item in self.fetch_category(code, semester, progress=progress):
                 cid = str(item.get("id", ""))
-                src = next((c for c in courses if c.course_id == cid), None)
-                if src is not None:
-                    updated[cid] = Course(src.course_id, src.name, src.type_code, src.type_name,
-                                          _to_int(item.get("bksrl")), _to_int(item.get("bksyxrs")))
+                if cid:
+                    items[cid] = item
+        return items
+
+    def refresh_seats(self, courses: list, semester: Semester,
+                      pacer=None, progress=None) -> list:
+        fmap = self.fetch_course_map(
+            {c.type_code for c in courses}, semester, pacer, progress)
+        updated: dict[str, Course] = {}
+        for c in courses:
+            item = fmap.get(c.course_id)
+            if item is not None:
+                extra = dict(c.extra or {})
+                extra.update(build_extra(item))
+                updated[c.course_id] = Course(
+                    c.course_id, c.name, c.type_code, c.type_name,
+                    _to_int(item.get("bksrl")), _to_int(item.get("bksyxrs")), extra)
         return [updated.get(c.course_id, c) for c in courses]
+
+    def verify_queue(self, courses: list, semester: Semester,
+                     pacer=None, progress=None) -> tuple[list, list]:
+        """用新鲜目录核对队列：返回 (存活courses[含刷新余量], 失踪courses)。
+        失踪指 id 在对应类别 fresh 列表里找不到（课程可能已关闭/改名）。"""
+        fmap = self.fetch_course_map(
+            {c.type_code for c in courses}, semester, pacer, progress)
+        alive, ghosts = [], []
+        for c in courses:
+            item = fmap.get(c.course_id)
+            if item is None:
+                ghosts.append(c)
+                continue
+            extra = dict(c.extra or {})
+            extra.update(build_extra(item))
+            alive.append(Course(
+                c.course_id, c.name, c.type_code, c.type_name,
+                _to_int(item.get("bksrl")), _to_int(item.get("bksyxrs")), extra))
+        return alive, ghosts
 
     def query_courses(self, semester: Semester, discovery_pacer=None, progress=None) -> dict[str, Course]:
         found: dict[str, Course] = {}

@@ -570,9 +570,15 @@ class EnrollApp(App):
             if imminent_start(at_text):
                 ev(("log", "[i] 临近开抢时刻，跳过余量刷新"))
             else:
-                ev(("log", "[*] 刷新队列余量…"))
-                queue = tis.refresh_seats(queue, self._semester,
-                                          Pacer(settings.discovery_interval_ms))
+                ev(("log", "[*] 核对队列（余量刷新 + 存活检查）…"))
+                queue, ghosts = tis.verify_queue(
+                    queue, self._semester, Pacer(settings.discovery_interval_ms))
+                for g in ghosts:
+                    ev(("log", f"[!] {g.name} 已不在课程目录中"
+                               f"（可能已关闭或改名），移出队列"))
+                if not queue:
+                    ev(("error", "队列课程均已不在目录中，请重新选课"))
+                    return
             warm, note = tis.warmup_checked()
             ev(("log", "[+] 连接预热完成 "
                        f"HTTP {warm}（TLS/HTTP2 已就绪）"))

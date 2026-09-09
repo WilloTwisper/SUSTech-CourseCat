@@ -430,9 +430,14 @@ def main(argv=None) -> None:
     if imminent_start(settings.at_time):
         print("[i] 临近开抢时刻，跳过余量刷新（以实时请求为准）")
     else:
-        print("[*] 刷新队列余量…")
-        queue = deque(tis.refresh_seats(list(queue), semester,
-                                        Pacer(settings.discovery_interval_ms)))
+        print("[*] 核对队列（余量刷新 + 存活检查）…")
+        queue, ghosts = tis.verify_queue(
+            list(queue), semester, Pacer(settings.discovery_interval_ms))
+        for g in ghosts:
+            print(f"[!] {g.name} 已不在课程目录中（可能已关闭或改名），移出队列")
+        if not queue:
+            raise SystemExit("[x] 队列课程均已不在目录中，请重新选课")
+        queue = deque(queue)
         print_queue(queue)
 
     warm, note = tis.warmup_checked()

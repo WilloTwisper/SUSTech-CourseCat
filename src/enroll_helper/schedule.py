@@ -8,7 +8,7 @@ WEEKDAYS = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6,
 
 _SEG_RE = re.compile(
     r"(\d+-\d+单周|\d+-\d+双周|\d+-\d+周|\d+周)\s*[,，]?\s*"
-    r"(?:星期|周)([一二三四五六日天])第(\d+)(?:\s*-\s*(\d+))?节"
+    r"(?:星期|周)([一二三四五六日天])第(\d+)(?:\s*-\s*(\d+))?节\s*([^\s，,；;]*)"
 )
 _WEEK_RE = re.compile(r"(\d+)(?:-(\d+))?(单|双)?周")
 
@@ -19,6 +19,7 @@ class Slot:
     weekday: int = 0
     start: int = 0
     end: int = 0
+    location: str = ""
 
 
 def parse_weeks(spec: str) -> set[int]:
@@ -43,8 +44,9 @@ def parse_schedule(text: str) -> list[Slot]:
         weekday = WEEKDAYS.get(m.group(2), 0)
         start = int(m.group(3))
         end = int(m.group(4)) if m.group(4) else start
+        location = (m.group(5) or "").strip()
         if weeks and weekday and start <= end:
-            slots.append(Slot(frozenset(weeks), weekday, start, end))
+            slots.append(Slot(frozenset(weeks), weekday, start, end, location))
     return slots
 
 

@@ -144,6 +144,19 @@ def test_refresh_seats(mock, tis):
     assert out[0].seats_text() == "余2/25"
 
 
+def test_verify_queue_flags_ghosts(mock, tis):
+    from enroll_helper.tis.models import Course
+
+    sem = tis.query_semester()
+    rows = [Course("MOCK-103", "数据结构（mock）", "kzyxk", "培养方案内"),
+            Course("GHOST-1", "幽灵课", "kzyxk", "培养方案内")]
+    alive, ghosts = tis.verify_queue(rows, sem, Pacer(1))
+
+    assert [c.course_id for c in alive] == ["MOCK-103"]
+    assert [c.course_id for c in ghosts] == ["GHOST-1"]
+    assert alive[0].capacity == 25
+
+
 def test_persistent_full_hint_once(make_settings, capsys):
     from collections import deque
 
