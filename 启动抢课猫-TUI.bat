@@ -11,16 +11,19 @@ if not exist .venv\Scripts\python.exe (
   echo [*] 首次运行，创建虚拟环境…
   py -3 -m venv .venv 2>nul || python -m venv .venv
 )
-echo [*] 安装/更新依赖（首次约1-3分钟，请勿关闭窗口）…
-.venv\Scripts\python -m pip install -e ".[dev]" --quiet --disable-pip-version-check
+.venv\Scripts\python -c "import enroll_helper.tui_app" 2>nul
 if errorlevel 1 (
-  .venv\Scripts\coursecat-tui --help >nul 2>&1
+  echo [*] 环境不完整，安装/更新依赖（约1-3分钟，请勿关闭窗口）…
+  .venv\Scripts\python -m pip install -e ".[dev]" --quiet --disable-pip-version-check
   if errorlevel 1 (
-    echo [x] 依赖安装失败：请检查网络连接后重新双击运行。
-    pause
-    exit /b 1
+    .venv\Scripts\python -c "import enroll_helper.tui_app" 2>nul
+    if errorlevel 1 (
+      echo [x] 依赖安装失败：请检查网络连接后重新双击运行。
+      pause
+      exit /b 1
+    )
+    echo [!] 依赖更新被跳过（可能有旧窗口正在运行，请先关闭旧窗口），使用现有环境继续…
   )
-  echo [!] 依赖更新被跳过（可能有旧窗口正在运行，请先关闭旧窗口），使用现有环境继续…
 )
 echo [*] 启动抢课猫 TUI 版…
 .venv\Scripts\coursecat-tui
