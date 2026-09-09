@@ -1,6 +1,8 @@
 <!-- 发布前：全局替换 WilloTwisper/SUSTech-CourseCat 为你的仓库地址 -->
 # (=^･ω･^=) 抢课猫 CourseCat
 
+[English](./README_EN.md) | **中文**
+
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![SUSTech](https://img.shields.io/badge/SUSTech-TIS-8f000b)](https://tis.sustech.edu.cn)

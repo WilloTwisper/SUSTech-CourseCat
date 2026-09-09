@@ -161,35 +161,35 @@ body.dark #modal h3{color:#fff}
 <body>
 <header class="topbar">
   <div class="brand"><svg class="catlogo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="16" fill="#8f000b"/><path d="M6.5 13.5 L5 4.5 L13 8.5 Z" fill="#fff"/><path d="M25.5 13.5 L27 4.5 L19 8.5 Z" fill="#fff"/><path d="M8.2 11.6 L7.4 7.2 L11.6 9.4 Z" fill="#f4a7b9"/><path d="M23.8 11.6 L24.6 7.2 L20.4 9.4 Z" fill="#f4a7b9"/><ellipse cx="16" cy="18.5" rx="9" ry="7.5" fill="#fff"/><ellipse cx="12.3" cy="17.5" rx="2" ry="2.4" fill="#333"/><ellipse cx="19.7" cy="17.5" rx="2" ry="2.4" fill="#333"/><circle cx="13" cy="16.6" r="0.7" fill="#fff"/><circle cx="20.4" cy="16.6" r="0.7" fill="#fff"/><path d="M14.8 20.6 L17.2 20.6 L16 22.2 Z" fill="#f4a7b9"/><path d="M16 22.2 Q16 23.4 14.6 23.6 M16 22.2 Q16 23.4 17.4 23.6" stroke="#333" stroke-width="0.9" fill="none" stroke-linecap="round"/><path d="M4.5 19.5 L9 20.3 M4.8 22.5 L9.2 21.8 M27.5 19.5 L23 20.3 M27.2 22.5 L22.8 21.8" stroke="#fff" stroke-width="0.7" stroke-linecap="round" opacity="0.85"/></svg><span>抢课猫 <small>CourseCat · 南科大 TIS 助手</small></span></div>
-  <div class="user"><span>您好 <span class="badge" id="session-badge">会话 …</span></span><span id="semester-label">…</span><button class="ghost" id="theme" title="黑夜模式">🌙</button><button class="ghost" id="fs">全屏</button></div>
+  <div class="user"><span><span data-i18n="hello">您好</span> <span class="badge" id="session-badge">会话 …</span></span><span id="semester-label">…</span><button class="ghost" id="lang" title="语言/Language">EN</button><button class="ghost" id="theme" title="黑夜模式">🌙</button><button class="ghost" id="fs" data-i18n="fullscreen">全屏</button></div>
 </header>
 
 <div class="wrap">
-  <div class="notice" id="phase-banner"><span class="dot">ⓘ</span><span id="phase-text">本地抢课控制台：仅在你点“开始抢课”后才会向教务系统提交真实请求。</span></div>
+  <div class="notice" id="phase-banner"><span class="dot">ⓘ</span><span id="phase-text" data-i18n="notice">本地抢课控制台：仅在你点“开始抢课”后才会向教务系统提交真实请求。</span></div>
 
   <section class="card" id="console">
-    <h3>抢课控制台 <span class="mini">（按优先级从上到下）</span>
+    <h3><span data-i18n="consoleTitle">抢课控制台</span> <span class="mini" data-i18n="consoleMini">（按优先级从上到下）</span>
       <span id="ribbon" title="收起/展开">收起 ▴</span></h3>
     <div id="console-body">
     <div class="controls">
-      <label>模式
-        <label><input type="radio" name="mode" value="now" checked> 立即</label>
-        <label><input type="radio" name="mode" value="at"> 定时</label>
-        <label><input type="radio" name="mode" value="retry"> 蹲退课</label>
+      <label><span data-i18n="mode">模式</span>
+        <label><input type="radio" name="mode" value="now" checked> <span data-i18n="now">立即</span></label>
+        <label><input type="radio" name="mode" value="at"> <span data-i18n="at">定时</span></label>
+        <label><input type="radio" name="mode" value="retry"> <span data-i18n="retry">蹲退课</span></label>
       </label>
-      <label>开抢时间 <input type="text" id="at" placeholder="10:00 或 2026-09-08 10:00:00" size="22"></label>
-      <label>间隔ms <input type="number" id="interval" value="1600" min="1500" step="100" style="width:90px"></label>
-      <label>提交 <label><input type="radio" name="target" value="rwtjzyx" checked> 直选</label>
-        <label><input type="radio" name="target" value="rwtjzgwc"> 购物车</label></label>
-      <label class="switch"><input type="checkbox" id="cascade" checked> 满员轮询<span class="sw"></span></label>
-      <label class="switch"><input type="checkbox" id="ntp" checked> NTP校时<span class="sw"></span></label>
-      <button class="btn btn-green" id="start">开始抢课</button>
-      <button class="btn btn-red" id="stop">停止</button>
-      <button class="btn" id="refresh">刷新目录</button>
-      <button class="btn" id="login">重新登录</button>
+      <label><span data-i18n="atLabel">开抢时间</span> <input type="text" id="at" data-i18n-ph="atPh" placeholder="10:00 或 2026-09-08 10:00:00" size="22"></label>
+      <label><span data-i18n="interval">间隔ms</span> <input type="number" id="interval" value="1600" min="1500" step="100" style="width:90px"></label>
+      <label><span data-i18n="target">提交</span> <label><input type="radio" name="target" value="rwtjzyx" checked> <span data-i18n="direct">直选</span></label>
+        <label><input type="radio" name="target" value="rwtjzgwc"> <span data-i18n="cart">购物车</span></label></label>
+      <label class="switch"><input type="checkbox" id="cascade" checked> <span data-i18n="cascade">满员轮询</span><span class="sw"></span></label>
+      <label class="switch"><input type="checkbox" id="ntp" checked> <span data-i18n="ntp">NTP校时</span><span class="sw"></span></label>
+      <button class="btn btn-green" id="start" data-i18n="start">开始抢课</button>
+      <button class="btn btn-red" id="stop" data-i18n="stop">停止</button>
+      <button class="btn" id="refresh" data-i18n="refresh">刷新目录</button>
+      <button class="btn" id="login" data-i18n="login">重新登录</button>
     </div>
     <div class="table-wrap"><table class="grid" id="queue-table">
-      <thead><tr><th>#</th><th>待选课程</th><th>类别</th><th>余量</th><th>状态</th><th>操作</th></tr></thead>
+      <thead><tr><th>#</th><th data-i18n="qCourse">待选课程</th><th data-i18n="qType">类别</th><th data-i18n="qSeats">余量</th><th data-i18n="qStatus">状态</th><th data-i18n="qOp">操作</th></tr></thead>
       <tbody id="queue-body"><tr><td colspan="6" style="color:#808695">队列为空：在下方课程表点“选课”加入</td></tr></tbody>
     </table></div>
     <div id="log"></div>
@@ -198,21 +198,21 @@ body.dark #modal h3{color:#fff}
 
   <section class="card">
     <div class="filterbar">
-      <label>学年学期 <span id="xnxq" style="color:var(--title)">…</span></label>
-      <label>开课学院 <select id="school"><option value="">请选择</option></select></label>
-      <label>课程类别 <select id="cat2"><option value="">课程类别</option></select></label>
-      <label>课程 <input type="text" id="q" placeholder="课程"></label>
-      <label class="switch">忽略冲突 <input type="checkbox" id="ignoreConflict" checked><span class="sw"></span></label>
-      <label class="switch">忽略零余量 <input type="checkbox" id="hidefull"><span class="sw"></span></label>
-      <button class="btn btn-blue" id="search">查询</button>
+      <label><span data-i18n="semLabel">学年学期</span> <span id="xnxq" style="color:var(--title)">…</span></label>
+      <label><span data-i18n="school">开课学院</span> <select id="school"><option value="">请选择</option></select></label>
+      <label><span data-i18n="cat">课程类别</span> <select id="cat2"><option value="">课程类别</option></select></label>
+      <label><span data-i18n="course">课程</span> <input type="text" id="q" data-i18n-ph="coursePh" placeholder="课程"></label>
+      <label class="switch"><span data-i18n="ignoreConflict">忽略冲突</span> <input type="checkbox" id="ignoreConflict" checked><span class="sw"></span></label>
+      <label class="switch"><span data-i18n="hideFull">忽略零余量</span> <input type="checkbox" id="hidefull"><span class="sw"></span></label>
+      <button class="btn btn-blue" id="search" data-i18n="search">查询</button>
       <span class="mini" id="count"></span>
     </div>
     <div class="tabs" id="tabs"></div>
     <div class="table-wrap"><table class="grid" id="course-table">
       <thead><tr>
-        <th>教学班</th><th>课程代码</th><th>课程名称</th><th>课程性质</th><th>课程类别</th>
-        <th>授课语言</th><th>计分方式</th><th>学分</th><th>学时</th><th>上课信息</th>
-        <th>容量/已选</th><th>冲突课程</th><th>开课学院</th><th>操作</th>
+        <th data-i18n="cTask">教学班</th><th data-i18n="cCode">课程代码</th><th data-i18n="cTitle">课程名称</th><th data-i18n="cNature">课程性质</th><th data-i18n="cCat">课程类别</th>
+        <th data-i18n="cLang">授课语言</th><th data-i18n="cGrade">计分方式</th><th data-i18n="cCredit">学分</th><th data-i18n="cHours">学时</th><th data-i18n="cSkxx">上课信息</th>
+        <th data-i18n="cSeats">容量/已选</th><th data-i18n="cConflict">冲突课程</th><th data-i18n="cSchool">开课学院</th><th data-i18n="cOp">操作</th>
       </tr></thead>
       <tbody id="course-body"><tr><td colspan="13" style="color:#808695">先点“刷新目录”（首次约半分钟）</td></tr></tbody>
     </table></div>
@@ -220,13 +220,13 @@ body.dark #modal h3{color:#fff}
   </section>
 </div>
 
-<footer><div class="l"><span>主页</span><span>我要选课</span></div><div class="r"><a id="star">⭐ Star</a><a id="share">推荐给同学</a><a id="disclaimer">免责声明</a><span>关闭标签</span></div></footer>
+<footer><div class="l"><span data-i18n="fHome">主页</span><span data-i18n="fXk">我要选课</span></div><div class="r"><a id="star">⭐ Star</a><a id="share" data-i18n="fShare">推荐给同学</a><a id="disclaimer" data-i18n="fDisc">免责声明</a><span data-i18n="fClose">关闭标签</span></div></footer>
 <div id="modal-mask" hidden><div id="modal">
-  <h3>免责声明</h3>
-  <p>抢课猫 CourseCat 仅供个人学习与研究使用。使用本工具产生的任何行为由使用者本人承担，请确保符合学校规章制度与相关法规。</p>
-  <p>本工具不规避任何安全机制、不做流量伪装、不承诺任何效果；作者不对封号、处分等任何直接或间接后果负责。</p>
-  <p>如果你觉得好用，欢迎 Star 本项目并推荐给同学（页脚可一键分享）。</p>
-  <p><button class="btn btn-blue" id="modal-ok">我知道了</button></p>
+  <h3 data-i18n="dTitle">免责声明</h3>
+  <p data-i18n="d1">抢课猫 CourseCat 仅供个人学习与研究使用。使用本工具产生的任何行为由使用者本人承担，请确保符合学校规章制度与相关法规。</p>
+  <p data-i18n="d2">本工具不规避任何安全机制、不做流量伪装、不承诺任何效果；作者不对封号、处分等任何直接或间接后果负责。</p>
+  <p data-i18n="d3">如果你觉得好用，欢迎 Star 本项目并推荐给同学（页脚可一键分享）。</p>
+  <p><button class="btn btn-blue" id="modal-ok" data-i18n="dOk">我知道了</button></p>
 </div></div>
 <script src="/app.js"></script>
 </body>
