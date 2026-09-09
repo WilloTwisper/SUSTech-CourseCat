@@ -289,6 +289,8 @@ class Hub:
                     "course": row["task"], "start": s.start, "end": s.end,
                     "weeks": weeks_text(set(s.weeks)),
                     "schedule": row.get("schedule", "")[:120],
+                    "location": s.location,
+                    "teacher": ", ".join(row.get("teachers", [])),
                 })
         for items in grid.values():
             items.sort(key=lambda x: (x["start"], x["end"]))

@@ -190,6 +190,8 @@ def test_timetable_grouping(mock, web):
     assert len(mon["items"]) == 1
     assert mon["items"][0]["course"] == "大学物理实验-01班-双语"
     assert (mon["items"][0]["start"], mon["items"][0]["end"]) == (1, 2)
+    assert mon["items"][0]["location"] == "实验楼302"
+    assert mon["items"][0]["teacher"] == "赵雷"
 
     raw = {"rwmc": "已选课-01班", "id": "E1", "kcdm": "XX101", "kcmc": "已选课",
            "kcxx": '<p><a>张三</a></p><div class="ivu-tag ivu-tag-cyan">'

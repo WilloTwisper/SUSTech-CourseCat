@@ -465,6 +465,12 @@ window.addEventListener("DOMContentLoaded", () => {
     try {
       const d = await api("/api/timetable");
       const days = d.days || [];
+      const jsToday = ((new Date().getDay() + 6) % 7) + 1;
+      const colorOf = (name) => {
+        let h = 0;
+        for (const ch of name) h = (h * 31 + ch.codePointAt(0)) % 997;
+        return h % 8;
+      };
       let maxP = 8;
       for (const day of days)
         for (const it of day.items) maxP = Math.max(maxP, it.end);
@@ -475,25 +481,31 @@ window.addEventListener("DOMContentLoaded", () => {
           for (let p = it.start; p <= Math.min(it.end, maxP); p++)
             occ[day.day + "-" + p] = it;
       let html = `<table class="tt"><thead><tr><th style="width:44px"></th>`;
-      for (const day of days)
-        html += `<th>${esc(lang === "zh" ? day.day : (WDE[day.day] || day.day))}</th>`;
+      days.forEach((day, di) => {
+        const today = (di + 1) === jsToday ? ` class="tt-today"` : "";
+        html += `<th${today}>${esc(lang === "zh" ? day.day : (WDE[day.day] || day.day))}</th>`;
+      });
       html += `</tr></thead><tbody>`;
       for (let p = 1; p <= maxP; p++) {
         html += `<tr><td class="tt-period">${p}</td>`;
-        for (const day of days) {
+        days.forEach((day, di) => {
+          const today = ((di + 1) === jsToday) ? " tt-today" : "";
           const key = day.day + "-" + p;
           if (occ[key]) {
             const it = occ[key];
             if (it.start === p) {
               const span = Math.min(it.end, maxP) - p + 1;
               const short = esc(it.course.split("-")[0]);
-              html += `<td rowspan="${span}"><div class="tt-course" title="${esc(it.course)}">${short}</div>` +
-                `<div class="tt-weeks">${esc(it.weeks)}</div></td>`;
+              const tip = esc(`${it.course}${it.teacher ? " · " + it.teacher : ""} ${it.weeks}`);
+              html += `<td rowspan="${span}" class="ttc${colorOf(it.course)}${today}">` +
+                `<div class="tt-course" title="${tip}">${short}</div>` +
+                `<div class="tt-weeks">${esc(it.weeks)}</div>` +
+                (it.location ? `<div class="tt-loc">@${esc(it.location)}</div>` : "") + `</td>`;
             }
           } else {
-            html += `<td></td>`;
+            html += `<td class="${today.trim()}"></td>`;
           }
-        }
+        });
         html += `</tr>`;
       }
       const hasAny = days.some((day) => day.items.length);
