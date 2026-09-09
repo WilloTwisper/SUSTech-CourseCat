@@ -142,3 +142,22 @@ def test_refresh_seats(mock, tis):
 
     assert (out[0].capacity, out[0].enrolled) == (25, 23)
     assert out[0].seats_text() == "余2/25"
+
+
+def test_persistent_full_hint_once(make_settings, capsys):
+    from collections import deque
+
+    from enroll_helper.engine import EnrollEngine
+    from enroll_helper.pacer import Pacer
+    from enroll_helper.tis.models import Attempt, Course, Status
+
+    course = Course("X1", "测试课", "xxxk", capacity=20, enrolled=20)
+    engine = EnrollEngine(object(), object(), Pacer(1),
+                          make_settings(retry_full=True))
+    q = deque([course])
+    for _ in range(6):
+        engine._handle(
+            q, Attempt(course, Status.FULL, "人数已满", 200, 5.0))
+    out = capsys.readouterr().out
+    assert out.count("连续满员5次") == 1
+    assert list(q) == [course]

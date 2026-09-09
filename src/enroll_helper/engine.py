@@ -66,6 +66,7 @@ class EnrollEngine:
         self._stdin_thread: threading.Thread | None = None
         self._stopping = False
         self.on_attempt = None
+        self._full_streak: dict[str, int] = {}
 
     def run(self, queue: deque[Course], max_requests: int = 0) -> RunSummary:
         self._maybe_start_stdin()
@@ -98,6 +99,8 @@ class EnrollEngine:
         s.latencies_ms.append(attempt.latency_ms)
         s.request_times.append(attempt.request_start or time.perf_counter())
         s.attempts.append(attempt)
+        if attempt.status is not Status.FULL:
+            self._full_streak.pop(attempt.course.course_id, None)
         if not self.quiet:
             print_attempt(attempt, s.total_requests)
         cb = getattr(self, "on_attempt", None)
@@ -143,6 +146,11 @@ class EnrollEngine:
                 if quota:
                     print_note("服务端配额快照：" +
                                " ".join(f"{k}={v}" for k, v in quota.items()))
+            streak = self._full_streak.get(attempt.course.course_id, 0) + 1
+            self._full_streak[attempt.course.course_id] = streak
+            if streak == 5:
+                print_note(f"{attempt.course.name} 已连续满员5次：显示余量可能滞后"
+                           f"或受子配额限制；若本地是定时释放规则，建议等下一释放点再试")
             if not self.settings.retry_full:
                 queue.popleft()
                 self.summary.skipped.append((attempt.course, "人数已满"))
