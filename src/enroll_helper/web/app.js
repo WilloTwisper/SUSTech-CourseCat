@@ -464,26 +464,41 @@ window.addEventListener("DOMContentLoaded", () => {
     body.innerHTML = `<div class="mini">…</div>`;
     try {
       const d = await api("/api/timetable");
-      body.innerHTML = "";
-      let any = false;
-      for (const day of d.days || []) {
-        if (!day.items.length) continue;
-        any = true;
-        const h = document.createElement("div");
-        h.className = "tt-day";
-        h.textContent = lang === "zh" ? day.day : (WDE[day.day] || day.day);
-        body.appendChild(h);
-        for (const it of day.items) {
-          const div = document.createElement("div");
-          div.className = "tt-item";
-          const when = lang === "zh"
-            ? `${it.weeks} ${it.day}第${it.start}-${it.end}节`
-            : `${it.weeks} ${WDE[it.day] || it.day} ${it.start}-${it.end}`;
-          div.textContent = `${it.course} · ${when}`;
-          body.appendChild(div);
+      const days = d.days || [];
+      let maxP = 8;
+      for (const day of days)
+        for (const it of day.items) maxP = Math.max(maxP, it.end);
+      maxP = Math.min(maxP, 14);
+      const occ = {};
+      for (const day of days)
+        for (const it of day.items)
+          for (let p = it.start; p <= Math.min(it.end, maxP); p++)
+            occ[day.day + "-" + p] = it;
+      let html = `<table class="tt"><thead><tr><th style="width:44px"></th>`;
+      for (const day of days)
+        html += `<th>${esc(lang === "zh" ? day.day : (WDE[day.day] || day.day))}</th>`;
+      html += `</tr></thead><tbody>`;
+      for (let p = 1; p <= maxP; p++) {
+        html += `<tr><td class="tt-period">${p}</td>`;
+        for (const day of days) {
+          const key = day.day + "-" + p;
+          if (occ[key]) {
+            const it = occ[key];
+            if (it.start === p) {
+              const span = Math.min(it.end, maxP) - p + 1;
+              const short = esc(it.course.split("-")[0]);
+              html += `<td rowspan="${span}"><div class="tt-course" title="${esc(it.course)}">${short}</div>` +
+                `<div class="tt-weeks">${esc(it.weeks)}</div></td>`;
+            }
+          } else {
+            html += `<td></td>`;
+          }
         }
+        html += `</tr>`;
       }
-      if (!any) body.innerHTML = `<div class="mini">${esc(t("ttEmpty"))}</div>`;
+      const hasAny = days.some((day) => day.items.length);
+      body.innerHTML = html + `</tbody></table>` +
+        (hasAny ? "" : `<div class="mini">${esc(t("ttEmpty"))}</div>`);
     } catch (e) {
       body.innerHTML = `<div style="color:#ED4014">${esc(t("queryFail") + e.message)}</div>`;
     }

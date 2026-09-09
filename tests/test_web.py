@@ -206,7 +206,27 @@ def test_timetable_grouping(mock, web):
     e = _get(base, "/api/enrolled")
     row = e["enrolled"][0]
     assert row["code"] == "XX101" and row["title"] == "已选课"
-    assert row["name"] == "已选课-01班"
+    assert row["task"] == "已选课-01班"
+
+
+def test_enrolled_overlay_fills_details(mock, web):
+    from enroll_helper.tis.models import Course
+
+    base, hub = web
+    hub.catalog = {
+        "目标课-01班": Course("T1", "目标课-01班", "xxxk", "通识选修", 20, 18, extra={
+            "kcdm": "XX100", "kcmc": "目标课", "kclbmc": "通识选修课",
+            "kkyxmc": "测试学院", "skyymc": "中文", "xf": "2.0"}),
+    }
+    hub._fetch_enrolled_raw = lambda: [{"rwmc": "目标课-01班", "id": "T1"}]
+    hub._enrolled_cache = (0.0, [])
+    e = _get(base, "/api/enrolled")
+    assert len(e["enrolled"]) == 1
+    row = e["enrolled"][0]
+    assert row["code"] == "XX100"
+    assert row["title"] == "目标课"
+    assert row["category"] == "通识选修课"
+    assert row["school"] == "测试学院"
 
 
 def test_conflict_annotation(mock, web):

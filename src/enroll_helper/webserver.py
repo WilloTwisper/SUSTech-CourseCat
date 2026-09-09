@@ -233,6 +233,13 @@ class Hub:
         sem = self.ensure_semester()
         return tis.query_enrolled(sem)
 
+    def _match_catalog(self, course_id: str, name: str):
+        if course_id:
+            for c in self.catalog.values():
+                if c.course_id == course_id:
+                    return c
+        return self.catalog.get(name)
+
     def enrolled_detailed(self) -> list:
         from .tis.client import _to_int, build_extra
         from .tis.models import Course
@@ -245,17 +252,27 @@ class Hub:
             name = str(it.get("rwmc") or it.get("kcmc") or "")
             if not name:
                 continue
-            course = Course(
-                course_id=str(it.get("id") or ""), name=name, type_code="",
-                type_name="已选",
-                capacity=_to_int(it.get("bksrl")), enrolled=_to_int(it.get("bksyxrs")),
-                extra=build_extra(it))
-            row = row_dict(course)
+            cid = str(it.get("id") or "")
             teachers, schedule, tags = summarize_kcxx(str(it.get("kcxx") or ""))
-            row["teachers"] = teachers
-            row["schedule"] = schedule
-            row["slots"] = slots_from_extra(
-                {"sched_tags": tags, "schedule": schedule})
+            own_slots = slots_from_extra({"sched_tags": tags, "schedule": schedule})
+            match = self._match_catalog(cid, name)
+            if match is not None:
+                row = row_dict(match)
+                base_slots = slots_from_extra(match.extra or {})
+            else:
+                course = Course(
+                    course_id=cid, name=name, type_code="",
+                    type_name="已选",
+                    capacity=_to_int(it.get("bksrl")),
+                    enrolled=_to_int(it.get("bksyxrs")),
+                    extra=build_extra(it))
+                row = row_dict(course)
+                base_slots = []
+            if teachers:
+                row["teachers"] = teachers
+            if schedule:
+                row["schedule"] = schedule
+            row["slots"] = own_slots or base_slots
             out.append(row)
         self._enrolled_cache = (now, out)
         return out
@@ -527,9 +544,7 @@ def make_handler(hub: Hub):
                 elif path == "/api/enrolled":
                     detailed = hub.enrolled_detailed()
                     self._send(200, {"enrolled": [
-                        {"name": e["task"], "id": e["id"],
-                         "teachers": e["teachers"], "schedule": e["schedule"],
-                         "code": e["code"], "title": e["title"]}
+                        {k: v for k, v in e.items() if k != "slots"}
                         for e in detailed]})
                 elif path == "/api/timetable":
                     self._send(200, {"days": hub.timetable()})
