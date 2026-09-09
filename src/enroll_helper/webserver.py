@@ -18,7 +18,7 @@ from .cli import (apply_cli_overrides, load_catalog, load_settings, make_args,
                   parse_at, parse_wanted, resolve_cookies)
 from .clocksync import Clock, imminent_start, sntp_offset
 from .config import Settings
-from .engine import EnrollEngine
+from .engine import EnrollEngine, startup_check
 from .login import run_login
 from .notify import Notifier
 from .pacer import Pacer
@@ -350,16 +350,14 @@ class Hub:
             settings.auto_skip_conflict = bool(opts.get("ignore_conflict", True))
             at_text = opts.get("at") if mode == "at" else None
             if imminent_start(at_text):
-                self.emit("log", text="[i] 临近开抢时刻，跳过余量刷新")
+                self.emit("log", text="[i] 临近开抢时刻，跳过开跑检查")
             else:
-                self.emit("log", text="[*] 核对队列（余量刷新 + 存活检查）…")
-                queue, ghosts = tis.verify_queue(
-                    queue, sem, Pacer(self.discovery_ms))
-                for g in ghosts:
-                    self.emit("log", text=f"[!] {g.name} 已不在课程目录中"
-                                          f"（可能已关闭或改名），移出队列")
+                self.emit("log", text="[*] 开跑检查（已选剔除 + 余量刷新 + 存活检查）…")
+                queue = startup_check(
+                    tis, sem, queue, Pacer(self.discovery_ms),
+                    log=lambda m: self.emit("log", text=m))
                 if not queue:
-                    raise RuntimeError("队列课程均已不在目录中，请重新选课")
+                    raise RuntimeError("队列已空（课程或已选、或已不在目录），请重新选课")
             warm, note = tis.warmup_checked()
             self.emit("log", text=f"[+] 连接预热完成 HTTP {warm}")
             if note:

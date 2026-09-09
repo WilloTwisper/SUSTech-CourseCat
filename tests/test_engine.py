@@ -144,6 +144,26 @@ def test_refresh_seats(mock, tis):
     assert out[0].seats_text() == "余2/25"
 
 
+def test_startup_check_order_enrolled_then_ghosts(mock, tis):
+    from collections import deque
+
+    from enroll_helper.engine import startup_check
+    from enroll_helper.pacer import Pacer
+    from enroll_helper.tis.models import Course
+
+    sem = tis.query_semester()
+    q = deque([
+        Course("MOCK-103", "数据结构（mock）", "kzyxk", "培养方案内"),
+        Course("GHOST-1", "幽灵课", "kzyxk", "培养方案内"),
+    ])
+    logs: list = []
+    out = startup_check(tis, sem, q, Pacer(1), log=logs.append)
+
+    assert [c.course_id for c in out] == ["MOCK-103"]
+    assert any("幽灵课" in m and "移出队列" in m for m in logs)
+    assert out[0].capacity == 25
+
+
 def test_verify_queue_flags_ghosts(mock, tis):
     from enroll_helper.tis.models import Course
 

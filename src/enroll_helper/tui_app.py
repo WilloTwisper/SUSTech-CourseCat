@@ -24,7 +24,7 @@ from textual.widgets import (Button, Checkbox, DataTable, Footer, Input,
 from .cli import (apply_cli_overrides, load_catalog, load_settings, make_args,
                   parse_at, parse_wanted, resolve_cookies)
 from .clocksync import Clock, imminent_start, sntp_offset
-from .engine import EnrollEngine
+from .engine import EnrollEngine, startup_check
 from .login import run_login
 from .notify import Notifier
 from .pacer import Pacer
@@ -568,16 +568,15 @@ class EnrollApp(App):
                 return
             at_text = settings.at_time
             if imminent_start(at_text):
-                ev(("log", "[i] 临近开抢时刻，跳过余量刷新"))
+                ev(("log", "[i] 临近开抢时刻，跳过开跑检查"))
             else:
-                ev(("log", "[*] 核对队列（余量刷新 + 存活检查）…"))
-                queue, ghosts = tis.verify_queue(
-                    queue, self._semester, Pacer(settings.discovery_interval_ms))
-                for g in ghosts:
-                    ev(("log", f"[!] {g.name} 已不在课程目录中"
-                               f"（可能已关闭或改名），移出队列"))
+                ev(("log", "[*] 开跑检查（已选剔除 + 余量刷新 + 存活检查）…"))
+                queue = startup_check(
+                    tis, self._semester, queue,
+                    Pacer(settings.discovery_interval_ms),
+                    log=lambda m: ev(("log", m)))
                 if not queue:
-                    ev(("error", "队列课程均已不在目录中，请重新选课"))
+                    ev(("error", "队列已空（课程或已选、或已不在目录），请重新选课"))
                     return
             warm, note = tis.warmup_checked()
             ev(("log", "[+] 连接预热完成 "

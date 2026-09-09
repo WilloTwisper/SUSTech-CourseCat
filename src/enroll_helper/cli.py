@@ -16,7 +16,7 @@ from . import constants as C
 from .cas import cas_login, prompt_credentials
 from .clocksync import Clock, imminent_start, sntp_offset, wait_until
 from .config import Settings, clamp_interval_ms, load_settings
-from .engine import EnrollEngine, merge_summaries
+from .engine import EnrollEngine, merge_summaries, startup_check
 from .login import run_login
 from .notify import Notifier, save_report
 from .pacer import Pacer
@@ -428,16 +428,13 @@ def main(argv=None) -> None:
     print("[i] 余量取自目录缓存（--pick 里输入 r 可刷新）")
 
     if imminent_start(settings.at_time):
-        print("[i] 临近开抢时刻，跳过余量刷新（以实时请求为准）")
+        print("[i] 临近开抢时刻，跳过开跑检查（以实时请求为准）")
     else:
-        print("[*] 核对队列（余量刷新 + 存活检查）…")
-        queue, ghosts = tis.verify_queue(
-            list(queue), semester, Pacer(settings.discovery_interval_ms))
-        for g in ghosts:
-            print(f"[!] {g.name} 已不在课程目录中（可能已关闭或改名），移出队列")
+        print("[*] 开跑检查（已选剔除 + 余量刷新 + 存活检查）…")
+        queue = startup_check(tis, semester, queue,
+                              Pacer(settings.discovery_interval_ms))
         if not queue:
-            raise SystemExit("[x] 队列课程均已不在目录中，请重新选课")
-        queue = deque(queue)
+            raise SystemExit("[x] 队列已空（课程或已选、或已不在目录），请重新选课")
         print_queue(queue)
 
     warm, note = tis.warmup_checked()

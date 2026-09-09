@@ -52,6 +52,31 @@ def merge_summaries(summaries: list) -> RunSummary:
     return merged
 
 
+def startup_check(tis, semester, queue: deque[Course], pacer=None,
+                  log=print) -> deque[Course]:
+    """开跑前三件事（顺序不能反）：已选剔除 → 余量刷新+存活检查。
+    先查已选是因为已选课同样不在新鲜目录里，否则会被误判成幽灵课。"""
+    try:
+        items = tis.query_enrolled(semester)
+    except Exception:
+        items = []
+    ids = {str(it.get("id") or "") for it in items}
+    names = {str(it.get("rwmc") or it.get("kcmc") or "") for it in items}
+    rest = []
+    for c in queue:
+        if (c.course_id and c.course_id in ids) or c.name in names:
+            log(f"[i] {c.name} 已在课表中，移出队列")
+        else:
+            rest.append(c)
+    if hasattr(tis, "verify_queue"):
+        alive, ghosts = tis.verify_queue(rest, semester, pacer)
+    else:
+        alive, ghosts = rest, []
+    for g in ghosts:
+        log(f"[!] {g.name} 已不在课程目录中（可能已关闭或改名），移出队列")
+    return deque(alive)
+
+
 class EnrollEngine:
     """Strict-priority serial enrollment loop.
 
