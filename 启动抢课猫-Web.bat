@@ -1,25 +1,28 @@
 @echo off
-title æŠ¢è¯¾çŒ« CourseCat - Web ç‰ˆ
-chcp 65001 >nul
+title ÇÀ¿ÎÃ¨ CourseCat - Web °æ
 cd /d %~dp0
 if not exist pyproject.toml (
-  echo [x] æ‰¾ä¸åˆ° pyproject.tomlã€‚
-  echo     è¯·å…ˆæŠŠ ZIP å®Œæ•´è§£åŽ‹åˆ°ä¸€ä¸ªæ–‡ä»¶å¤¹ï¼Œå†åŒå‡»è¿è¡Œï¼Œä¸è¦åœ¨åŽ‹ç¼©åŒ…é‡Œç›´æŽ¥æ‰“å¼€ã€‚
+  echo [x] ÕÒ²»µ½ pyproject.toml¡£
+  echo     ÇëÏÈ°Ñ ZIP ÍêÕû½âÑ¹µ½Ò»¸öÎÄ¼þ¼Ð£¬ÔÙË«»÷ÔËÐÐ£¬²»ÒªÔÚÑ¹Ëõ°üÀïÖ±½Ó´ò¿ª¡£
   pause
   exit /b 1
 )
 if not exist .venv\Scripts\python.exe (
-  echo [*] é¦–æ¬¡è¿è¡Œï¼Œåˆ›å»ºè™šæ‹ŸçŽ¯å¢ƒâ€¦
+  echo [*] Ê×´ÎÔËÐÐ£¬´´½¨ÐéÄâ»·¾³¡­
   py -3 -m venv .venv 2>nul || python -m venv .venv
 )
-echo [*] å®‰è£…/æ›´æ–°ä¾èµ–ï¼ˆé¦–æ¬¡çº¦1-3åˆ†é’Ÿï¼Œè¯·å‹¿å…³é—­çª—å£ï¼‰â€¦
+echo [*] °²×°/¸üÐÂÒÀÀµ£¨Ê×´ÎÔ¼1-3·ÖÖÓ£¬ÇëÎð¹Ø±Õ´°¿Ú£©¡­
 .venv\Scripts\python -m pip install -e ".[dev]" --quiet --disable-pip-version-check
 if errorlevel 1 (
-  echo [x] ä¾èµ–å®‰è£…å¤±è´¥ï¼šè¯·æ£€æŸ¥ç½‘ç»œè¿žæŽ¥åŽé‡æ–°åŒå‡»è¿è¡Œã€‚
-  pause
-  exit /b 1
+  .venv\Scripts\coursecat-web --help >nul 2>&1
+  if errorlevel 1 (
+    echo [x] ÒÀÀµ°²×°Ê§°Ü£ºÇë¼ì²éÍøÂçÁ¬½ÓºóÖØÐÂË«»÷ÔËÐÐ¡£
+    pause
+    exit /b 1
+  )
+  echo [!] ÒÀÀµ¸üÐÂ±»Ìø¹ý£¨¿ÉÄÜÓÐ¾É´°¿ÚÕýÔÚÔËÐÐ£¬ÇëÏÈ¹Ø±Õ¾É´°¿Ú£©£¬Ê¹ÓÃÏÖÓÐ»·¾³¼ÌÐø¡­
 )
-echo [*] å¯åŠ¨æŠ¢è¯¾çŒ« Web ç‰ˆï¼Œæµè§ˆå™¨ä¼šè‡ªåŠ¨æ‰“å¼€ä¸€ä¸ªé¡µé¢â€¦
-echo     è¦åœæ­¢æ—¶ç›´æŽ¥å…³é—­æœ¬çª—å£å³å¯ã€‚
+echo [*] Æô¶¯ÇÀ¿ÎÃ¨ Web °æ£¬ä¯ÀÀÆ÷»á×Ô¶¯´ò¿ªÒ»¸öÒ³Ãæ¡­
+echo [*] ÒªÍ£Ö¹Ê±Ö±½Ó¹Ø±Õ±¾´°¿Ú¼´¿É¡£
 .venv\Scripts\coursecat-web
 pause

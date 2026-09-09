@@ -1,24 +1,27 @@
 @echo off
-title æŠ¢è¯¾çŒ« CourseCat - TUI ç‰ˆ
-chcp 65001 >nul
+title ÇÀ¿ÎÃ¨ CourseCat - TUI °æ
 cd /d %~dp0
 if not exist pyproject.toml (
-  echo [x] æ‰¾ä¸åˆ° pyproject.tomlã€‚
-  echo     è¯·å…ˆæŠŠ ZIP å®Œæ•´è§£å‹åˆ°ä¸€ä¸ªæ–‡ä»¶å¤¹ï¼Œå†åŒå‡»è¿è¡Œï¼Œä¸è¦åœ¨å‹ç¼©åŒ…é‡Œç›´æ¥æ‰“å¼€ã€‚
+  echo [x] ÕÒ²»µ½ pyproject.toml¡£
+  echo     ÇëÏÈ°Ñ ZIP ÍêÕû½âÑ¹µ½Ò»¸öÎÄ¼ş¼Ğ£¬ÔÙË«»÷ÔËĞĞ£¬²»ÒªÔÚÑ¹Ëõ°üÀïÖ±½Ó´ò¿ª¡£
   pause
   exit /b 1
 )
 if not exist .venv\Scripts\python.exe (
-  echo [*] é¦–æ¬¡è¿è¡Œï¼Œåˆ›å»ºè™šæ‹Ÿç¯å¢ƒâ€¦
+  echo [*] Ê×´ÎÔËĞĞ£¬´´½¨ĞéÄâ»·¾³¡­
   py -3 -m venv .venv 2>nul || python -m venv .venv
 )
-echo [*] å®‰è£…/æ›´æ–°ä¾èµ–ï¼ˆé¦–æ¬¡çº¦1-3åˆ†é’Ÿï¼Œè¯·å‹¿å…³é—­çª—å£ï¼‰â€¦
+echo [*] °²×°/¸üĞÂÒÀÀµ£¨Ê×´ÎÔ¼1-3·ÖÖÓ£¬ÇëÎğ¹Ø±Õ´°¿Ú£©¡­
 .venv\Scripts\python -m pip install -e ".[dev]" --quiet --disable-pip-version-check
 if errorlevel 1 (
-  echo [x] ä¾èµ–å®‰è£…å¤±è´¥ï¼šè¯·æ£€æŸ¥ç½‘ç»œè¿æ¥åé‡æ–°åŒå‡»è¿è¡Œã€‚
-  pause
-  exit /b 1
+  .venv\Scripts\coursecat-tui --help >nul 2>&1
+  if errorlevel 1 (
+    echo [x] ÒÀÀµ°²×°Ê§°Ü£ºÇë¼ì²éÍøÂçÁ¬½ÓºóÖØĞÂË«»÷ÔËĞĞ¡£
+    pause
+    exit /b 1
+  )
+  echo [!] ÒÀÀµ¸üĞÂ±»Ìø¹ı£¨¿ÉÄÜÓĞ¾É´°¿ÚÕıÔÚÔËĞĞ£¬ÇëÏÈ¹Ø±Õ¾É´°¿Ú£©£¬Ê¹ÓÃÏÖÓĞ»·¾³¼ÌĞø¡­
 )
-echo [*] å¯åŠ¨æŠ¢è¯¾çŒ« TUI ç‰ˆâ€¦
+echo [*] Æô¶¯ÇÀ¿ÎÃ¨ TUI °æ¡­
 .venv\Scripts\coursecat-tui
 pause
